@@ -1,0 +1,19 @@
+[workspace]
+resolver = "2"
+members = [
+    "waagent-rs",
+    "waagent-core",
+    "waagent-extensions"
+]
+
+[workspace.dependencies]
+# Serialization
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+
+# Utility
+anyhow = "1.0"
+
+# Tokio / Async
+tokio = { version = "1", features = ["signal", "process", "macros", "rt-multi-thread"] }

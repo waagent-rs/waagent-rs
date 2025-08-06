@@ -1,0 +1,41 @@
+[package]
+name = "waagent-rs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = [
+    "Alexander Kassap <alkassap@microsoft.com>",
+    "Alf Delgado Helleseter <adelgadohell@microsoft.com>",
+    "Álvaro Figueroa <alvarof@microsoft.com>",
+    "Arun Kumar <arukum@microsoft.com>",
+    "Esteban Flores <esflores@microsoft.com>",
+    "Francisco Ortiz <frortizl@microsoft.com>",
+    "Jonathan Brenes <jbrenes@microsoft.com>",
+    "Manish Kumawat <mkumawat@microsoft.com>",
+    "Mitchelle Tenorio Quesada <mitenori@microsoft.com>",
+    "Shawn Trockman <shawntr@microsoft.com>",
+    "Travis Sharp <trsharp@microsoft.com>",
+]
+
+[[bin]]
+name = "waagent"
+path = "src/main.rs"
+
+[dependencies]
+waagent-core = { path = "../waagent-core" }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+
+[target."cfg(windows)".dependencies]
+
+[build-dependencies]
+
+[target."cfg(unix)".build-dependencies]
+
+[dev-dependencies]
+
+[features]
+
+[target.x86_64-unknown-linux-musl]
+rustflags = ["-C", "target-feature=+crt-static"]

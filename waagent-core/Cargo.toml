@@ -1,0 +1,32 @@
+[package]
+name = "waagent-core"
+version = "0.1.0"
+edition = "2021"
+publish = false
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = [
+    "Alexander Kassap <alkassap@microsoft.com>",
+    "Alf Delgado Helleseter <adelgadohell@microsoft.com>",
+    "Álvaro Figueroa <alvarof@microsoft.com>",
+    "Arun Kumar <arukum@microsoft.com>",
+    "Esteban Flores <esflores@microsoft.com>",
+    "Francisco Ortiz <frortizl@microsoft.com>",
+    "Jonathan Brenes <jbrenes@microsoft.com>",
+    "Manish Kumawat <mkumawat@microsoft.com>",
+    "Mitchelle Tenorio Quesada <mitenori@microsoft.com>",
+    "Shawn Trockman <shawntr@microsoft.com>",
+    "Travis Sharp <trsharp@microsoft.com>",
+]
+
+[dependencies]
+
+[target."cfg(windows)".dependencies]
+windows = { version = "0.56", features = ["Win32_Foundation", "Win32_Storage_FileSystem"] }
+
+[build-dependencies]
+
+[target."cfg(windows)".build-dependencies]
+
+[dev-dependencies]
+
+[features]

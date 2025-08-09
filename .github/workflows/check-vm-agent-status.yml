@@ -1,0 +1,28 @@
+name: Check Azure VM Agent Status
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ poc ]
+
+jobs:
+  check-vm-agent-status:
+    runs-on: self-hosted
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Azure CLI Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+                
+    - name: Get VM Instance View
+      id: vm-status
+      run: |
+        az vm get-instance-view \
+          --name ${{ secrets.VM_NAME }} \
+          --resource-group ${{ secrets.RESOURCE_GROUP }} \
+          --query "instanceView" \
+          --output table

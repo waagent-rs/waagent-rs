@@ -3,7 +3,8 @@ resolver = "2"
 members = [
     "waagent-rs",
     "waagent-core",
-    "waagent-extensions"
+    "waagent-extensions",
+    "waagent-poc",
 ]
 
 [workspace.dependencies]

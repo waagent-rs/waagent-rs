@@ -40,7 +40,7 @@ Step zero: Log in to your github account in the browser. Also get ready a termin
   - Once your code or docs are ready, give them another look to make sure you didn't keep any "print-debug" code, any TODO commentaries, or maybe code that isn't ready for sending to the main project.
   - Now type `git status` from the top directory of the project. This will list all of the changes you have done.
   - Try not to add all of the directory, as this might include temp files or changes that are not ready to send. Let's add the changed files manually by running something like `git add file1 file2 doc.md test/test1`
-  - Now commit those changes. First, think of a message that describe the changes that happened to those files. Now, re-think that message in a way that it would make sense to the *other* developers of the project. Then type: `git commit -m "Added funcionality x and y, updated docs and added a test"`
+  - Now commit those changes. First, think of a message that describes the changes that happened to those files. Now, re-think that message in a way that it would make sense to the *other* developers of the project. Then type: `git commit -m "Added functionality x and y, updated docs and added a test"`
   - You can continue editing, reviewing and sending more commits. Or you can do everything in one single commit. Some "pro" project will prefer a single commit instead of multiple commits.
 - Push:
   - If you go to your GitHub page, you might expect to see your new and shiny code there, right? Well, one of the main features of the tool `git` is that it is designed to have multiple places where the repo can be. So pushing the code is a way to send your local commits to GitHub.

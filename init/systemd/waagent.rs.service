@@ -1,13 +1,20 @@
+# /etc/systemd/system/waagent-rs.service
 [Unit]
-Description=Azure Provisioning
+Description=Azure Linux Agent
+Wants=network-online.target sshd.service sshd-keygen.service
+After=network-online.target
+
+ConditionFileIsExecutable=/usr/bin/waagent-rs-poc
+ConditionPathExists=/etc/waagent.conf
 
 [Service]
-Type=oneshot
-ExecStart=/usr/bin/python3 /usr/local/azure-provisioning.py
-ExecStart=/bin/bash -c "hostnamectl set-hostname $(curl \
-    -H 'metadata: true' \
-    'http://169.254.169.254/metadata/instance/compute/name?api-version=2019-06-01&format=text')"
-ExecStart=/usr/bin/systemctl disable azure-provisioning.service
+Type=simple
+User=waagent-rs
+WorkingDirectory=/usr/bin
+ExecStart=/usr/bin/waagent-rs-poc
+Restart=always
+Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target

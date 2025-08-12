@@ -26,7 +26,7 @@ Step zero: Log in to your github account in the browser. Also get ready a termin
 - Clone:
   - From inside your Fork, click on the green button that says "Code". Now verify that you are in "Local", and below that you should see another tab that says SSH. Copy the url to the clipboard.
   - In a terminal, paste the url from the previous step, so that it says: `git clone git@github.com:username/waagent-rs.git`, where username is your github username.
-  - Now do `cd waagent-rs.git`
+  - Now do `cd waagent-rs`
 - Branch:
   - Think of the name of the new branch, where it's name is going to be related to the work that you are going to to. It is also a good idea to use separate branches if you plan on doing multiple things. For example, one branch for "doc-update" and another branch for "ci-tests". This will make one of the next steps, the **Pull Request** easier to merge to the main projects, as it will be clear what part of the code or docs you are modifying.
   - From the terminal write: `git branch newname` and then `git checkout newname`, where newname is just an example word.

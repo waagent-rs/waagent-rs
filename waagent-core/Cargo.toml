@@ -23,5 +23,9 @@ sys-info = { workspace = true }
 os_info = { workspace = true }
 tracing = { workspace = true }
 
+[dev-dependencies]
+# Test utilities for more advanced testing scenarios
+tempfile = "3.0"
+
 [target.'cfg(windows)'.dependencies]
 winapi = { workspace = true }

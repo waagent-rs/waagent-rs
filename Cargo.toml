@@ -4,7 +4,6 @@ members = [
     "waagent-rs",
     "waagent-core",
     "waagent-poc",
-    "wireserver-client",
 ]
 
 [workspace.dependencies]

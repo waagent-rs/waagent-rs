@@ -13,7 +13,6 @@ User=waagent-rs
 WorkingDirectory=/usr/bin
 ExecStart=/usr/bin/waagent-rs-poc
 Restart=always
-Restart=always
 RestartSec=5
 
 [Install]

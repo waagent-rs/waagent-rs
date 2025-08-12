@@ -45,7 +45,7 @@ Step zero: Log in to your github account in the browser. Also get ready a termin
 - Push:
   - If you go to your GitHub page, you might expect to see your new and shiny code there, right? Well, one of the main features of the tool `git` is that it is designed to have multiple places where the repo can be. So pushing the code is a way to send your local commits to GitHub.
   - Run on the terminal: `git push`
-  - This push command should use your ssh keys as a method of authentication. If it asks you for the password, maybe you git a web clone in the second step?
+  - This push command should use your ssh keys as a method of authentication. If it asks you for the password, maybe you got a web clone in the second step?
   - The first time you run the git push, the git tool will fail and offer another command instead, that specifies the branch name and talks about an "origin" which will be GitHub. That is fine, copy and paste *that* command.
   - Go back to the GitHub page, and review that the files you added are there, and if you sent multiple commits, they should all be there. Also review that those changes are in the correct branch, and not in "main".
 - Pull-request:

@@ -1,6 +1,6 @@
-// src/firewall/unix.rs
 use super::*;
 use std::process::Command;
+use tracing::{debug, warn};
 
 pub struct UnixFirewallManager {
     use_sudo: bool,
@@ -18,6 +18,12 @@ impl UnixFirewallManager {
 
 impl FirewallManager for UnixFirewallManager {
     fn add_rule(&self, rule: &FirewallRule) -> Result<(), Box<dyn Error>> {
+        // Check if rule already exists before adding
+        if self.rule_exists(rule)? {
+            warn!("Rule already exists, skipping: {:?}", rule);
+            return Ok(());
+        }
+        
         let args = self.build_iptables_args(rule, "INSERT")?;
         self.execute_command(args)
     }
@@ -66,7 +72,8 @@ impl UnixFirewallManager {
         ];
         
         match operation {
-            "INSERT" => args.extend(["-I".to_string(), "OUTPUT".to_string(), "1".to_string()]),
+            // Use APPEND instead of INSERT to avoid position conflicts
+            "INSERT" => args.extend(["-A".to_string(), "OUTPUT".to_string()]),
             "DELETE" => args.extend(["-D".to_string(), "OUTPUT".to_string()]),
             "CHECK" => args.extend(["-C".to_string(), "OUTPUT".to_string()]),
             _ => return Err("Invalid operation".into()),
@@ -105,6 +112,8 @@ impl UnixFirewallManager {
     }
     
     fn execute_command(&self, mut args: Vec<String>) -> Result<(), Box<dyn Error>> {
+        debug!("Command: {}", args.join(" "));
+
         let mut cmd = if self.use_sudo {
             let mut c = Command::new("sudo");
             c.args(&args);

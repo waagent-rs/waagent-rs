@@ -37,7 +37,7 @@ Step zero: Log in to your github account in the browser. Also get ready a termin
     - Try to keep the code working always. Even if you are starting to hack something today, and then continue after the weekend, do it in a way that it compiles at all times.
     - Use a "lint" tool to review that you don't have any errors or recommendations pending. A lint tool is similar to a spell checker, but for specific type of files. For this project, using a Markdown lint tool, a TOML file lint tool, and a Rust lint tool might be more than enough.
 - Commit:
-  - Once your code or docs are ready, give them another look to make sure you didn't kept any "print-debug" code, any TODO comentaries, or maybe code that isn't ready for sending to the main project.
+  - Once your code or docs are ready, give them another look to make sure you didn't keep any "print-debug" code, any TODO commentaries, or maybe code that isn't ready for sending to the main project.
   - Now type `git status` from the top directory of the project. This will list all of the changes you have done.
   - Try not to add all of the directory, as this might include temp files or changes that are not ready to send. Let's add the changed files manually by running something like `git add file1 file2 doc.md test/test1`
   - Now commit those changes. First, think of a message that describe the changes that happened to those files. Now, re-think that message in a way that it would make sense to the *other* developers of the project. Then type: `git commit -m "Added funcionality x and y, updated docs and added a test"`

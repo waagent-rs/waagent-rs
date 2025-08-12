@@ -7,6 +7,8 @@ permissions:
 on:
   push:
     branches: [ "*" ]
+  pull_requests:
+    branches: [ "*" ]
 
 jobs:
 

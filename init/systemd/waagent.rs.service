@@ -9,9 +9,9 @@ ConditionPathExists=/etc/waagent.conf
 
 [Service]
 Type=simple
-#User=waagent-rs
-WorkingDirectory=/home/azureAdmin/waagent-rs
-ExecStart=/home/azureAdmin/waagent-rs/target/release/waagent-rs-poc
+User=waagent-rs
+WorkingDirectory=/usr/bin
+ExecStart=/usr/bin/waagent-rs-poc
 Restart=always
 Restart=always
 RestartSec=5

@@ -4,7 +4,7 @@ Description=Azure Linux Agent
 Wants=network-online.target sshd.service sshd-keygen.service
 After=network-online.target
 
-ConditionFileIsExecutable=/usr/sbin/waagent
+ConditionFileIsExecutable=/usr/bin/waagent-rs-poc
 ConditionPathExists=/etc/waagent.conf
 
 [Service]

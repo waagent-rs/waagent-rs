@@ -2,7 +2,7 @@
 
 ## Hackathon warning (will be removed)
 
-This project is part of a Microsoft Hackathon. The main goal is have fun and learn some technologies like:
+This project is part of a Microsoft Hackathon. The main goal is to have fun and learn some technologies like:
 
 - Git and GitHub workflows
 - GitHub actions with local runners

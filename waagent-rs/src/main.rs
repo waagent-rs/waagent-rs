@@ -7,9 +7,8 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilte
 
 use waagent_core::network::firewall::{create_firewall_manager, Action, Direction, FirewallRule, Protocol};
 
-#[derive(ValueEnum, Clone, Debug)]
+#[derive(ValueEnum, Clone, Debug, PartialEq)]
 enum LoggingLevel {
-    Trace,
     Debug,
     Info,
     Warn,
@@ -20,7 +19,6 @@ enum LoggingLevel {
 impl fmt::Display for LoggingLevel {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            LoggingLevel::Trace => write!(f, "trace"),
             LoggingLevel::Debug => write!(f, "debug"),
             LoggingLevel::Info => write!(f, "info"),
             LoggingLevel::Warn => write!(f, "warn"),
@@ -40,6 +38,10 @@ struct Args {
     /// Log level (trace, debug, info, warn, error)
     #[arg(long, value_enum, default_value = "info")]
     log_level: LoggingLevel,
+
+    /// Whether to log line numbers or not
+    #[arg(long, default_value_t = false)]
+    log_line_numbers: bool,
 }
 
 #[tokio::main]
@@ -47,31 +49,35 @@ async fn main() -> Result<()> {
     let args = Args::parse();
     
     // Initialize tracing
-    init_tracing(&args.log_level)?;
+    init_tracing(&args.log_level, &args.log_line_numbers)?;
 
     // Output args if debug level logging
     debug!("Parsed arguments: {:?}", args);
 
     if args.configure_firewall {
-        info!("Configuring firewall rules");
         configure_firewall().await?;
     }
 
     Ok(())
 }
 
-fn init_tracing(log_level: &LoggingLevel) -> Result<()> {
+fn init_tracing(log_level: &LoggingLevel, log_line_numbers: &bool) -> Result<()> {
     let env_filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new(log_level.to_string()));
 
+    let mut format = tracing_subscriber::fmt::layer()
+        .with_target(false)
+        .with_thread_ids(true);
+
+    // Include file and line number if debug level
+    if *log_line_numbers {
+        format = format
+            .with_file(true)
+            .with_line_number(true);
+    }
+
     tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::fmt::layer()
-                .with_target(false)
-                .with_thread_ids(true)
-                .with_file(true)
-                .with_line_number(true)
-        )
+        .with(format)
         .with(env_filter)
         .init();
 
@@ -81,6 +87,8 @@ fn init_tracing(log_level: &LoggingLevel) -> Result<()> {
 
 #[tracing::instrument]
 async fn configure_firewall() -> Result<()> {
+    info!("Configure firewall rules ...");
+
     let firewall_manager = create_firewall_manager();
     
     let rule = FirewallRule {
@@ -101,9 +109,9 @@ async fn configure_firewall() -> Result<()> {
         let error = result.unwrap_err();
         error!("Failed to add firewall rule: {:?}", error);
         return Err(anyhow::anyhow!("Failed to add firewall rule: {}", error));
-    } else {
-        info!("Firewall rule added successfully");
     }
+
+    info!("Firewall rule added successfully");
 
     Ok(())
 }

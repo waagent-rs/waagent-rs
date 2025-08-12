@@ -71,17 +71,26 @@ fn get_memory_usage_percent() -> String {
 }
 
 fn get_processor_time() -> String {
-    // Simple approximation using boot time
-    match sys_info::boottime() {
-        Ok(boot_time) => {
-            let now = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_secs();
-            let uptime = now.saturating_sub(boot_time.tv_sec as u64);
-            format!("{}", uptime)
+    // Just a quick patch for building on non *nix systems
+    #[cfg(not(unix))]
+    {
+        "0".to_string()
+    }
+
+    #[cfg(unix)]
+    {
+        // Simple approximation using boot time
+        match sys_info::boottime() {
+            Ok(boot_time) => {
+                let now = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_secs();
+                let uptime = now.saturating_sub(boot_time.tv_sec as u64);
+                format!("{}", uptime)
+            }
+            Err(_) => "0".to_string(),
         }
-        Err(_) => "0".to_string(),
     }
 }
 

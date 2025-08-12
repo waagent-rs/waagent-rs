@@ -64,13 +64,8 @@ fn get_cpu_usage_percent() -> f64 {
     }
 }
 
+// Get memory usage percentage
 fn get_memory_usage_percent() -> f64 {
-    match (sys_info::mem_info(), sys_info::mem_info()) {
-        (Ok(mem), _) => {
-            let used = mem.total - mem.free;
-            let usage_percent = (used as f64 / mem.total as f64) * 100.0;
-            usage_percent
-        }
     match sys_info::mem_info() {
         Ok(mem) => {
             let used = mem.total - mem.free;
@@ -81,6 +76,7 @@ fn get_memory_usage_percent() -> f64 {
     }
 }
 
+// Get OS version
 fn get_os_version() -> String {
     let info = os_info::get();
     
@@ -91,6 +87,7 @@ fn get_os_version() -> String {
     version
 }
 
+// Get OS display name
 fn get_os_display_name() -> String {
     let info = os_info::get();
 
@@ -98,6 +95,7 @@ fn get_os_display_name() -> String {
     os_type
 }
 
+// Get system uptime in seconds
 fn get_uptime_seconds() -> u64 {
     #[cfg(all(not(unix), not(windows)))]
     {
@@ -132,6 +130,7 @@ fn get_uptime_seconds() -> u64 {
     }
 }
 
+// Unit tests for the system module
 #[cfg(test)]
 mod tests {
     use super::*;

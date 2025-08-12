@@ -1,0 +1,20 @@
+# /etc/systemd/system/waagent-rs.service
+[Unit]
+Description=Azure Linux Agent
+Wants=network-online.target sshd.service sshd-keygen.service
+After=network-online.target
+
+ConditionFileIsExecutable=/usr/bin/waagent-rs-poc
+ConditionPathExists=/etc/waagent.conf
+
+[Service]
+Type=simple
+User=waagent-rs
+WorkingDirectory=/usr/bin
+ExecStart=/usr/bin/waagent-rs-poc
+Restart=always
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,25 @@
+name: Build
+
+on:
+  push:
+    branches: [ "*" ]
+
+jobs:
+
+  release:
+    name: Build waagent-rs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build waagent-rs
+        id: build
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -y install rustup pkg-config libssl-dev
+          rustup toolchain install stable
+          cargo check
+          cargo build --release
+          ls -lha target/release

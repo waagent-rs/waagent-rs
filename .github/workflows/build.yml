@@ -18,10 +18,8 @@ jobs:
         id: build
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get update
-          # sudo DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
           sudo DEBIAN_FRONTEND=noninteractive apt-get -y install rustup pkg-config libssl-dev
           rustup toolchain install stable
           cargo check
           cargo build --release
           ls -lha target/release
-

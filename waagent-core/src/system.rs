@@ -71,7 +71,13 @@ fn get_memory_usage_percent() -> f64 {
             let usage_percent = (used as f64 / mem.total as f64) * 100.0;
             usage_percent
         }
-        _ => 0.0,
+    match sys_info::mem_info() {
+        Ok(mem) => {
+            let used = mem.total - mem.free;
+            let usage_percent = (used as f64 / mem.total as f64) * 100.0;
+            usage_percent
+        }
+        Err(_) => 0.0,
     }
 }
 

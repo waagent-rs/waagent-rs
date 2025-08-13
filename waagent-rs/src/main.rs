@@ -27,7 +27,7 @@ impl fmt::Display for LoggingLevel {
     }
 }
 
-/// Simple program to greet a person
+/// Azure agent for configuring firewall rules and managing logging levels.
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {

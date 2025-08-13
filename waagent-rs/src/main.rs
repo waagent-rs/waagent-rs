@@ -45,14 +45,13 @@ struct Args {
 }
 
 #[tokio::main]
+#[tracing::instrument]
 async fn main() -> Result<()> {
     let args = Args::parse();
     
     // Initialize tracing
     init_tracing(&args.log_level, &args.log_line_numbers)?;
-
-    // Output args if debug level logging
-    debug!("Parsed arguments: {:?}", args);
+    debug!("arguments: {:?}", args);
 
     if args.configure_firewall {
         configure_firewall().await?;
@@ -61,6 +60,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
+#[tracing::instrument]
 fn init_tracing(log_level: &LoggingLevel, log_line_numbers: &bool) -> Result<()> {
     let env_filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new(log_level.to_string()));

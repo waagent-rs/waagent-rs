@@ -24,7 +24,7 @@ impl FirewallManager for UnixFirewallManager {
             return Ok(());
         }
         
-        let args = self.build_iptables_args(rule, "INSERT")?;
+        let args = self.build_iptables_args(rule, "UPSERT")?;
         self.execute_command(args)
     }
     
@@ -72,8 +72,8 @@ impl UnixFirewallManager {
         ];
         
         match operation {
-            // Use APPEND instead of INSERT to avoid position conflicts
-            "INSERT" => args.extend(["-A".to_string(), "OUTPUT".to_string()]),
+            // Use APPEND instead of INSERT to avoid position conflicts - also label it as 'UPSERT'
+            "UPSERT" => args.extend(["-A".to_string(), "OUTPUT".to_string()]),
             "DELETE" => args.extend(["-D".to_string(), "OUTPUT".to_string()]),
             "CHECK" => args.extend(["-C".to_string(), "OUTPUT".to_string()]),
             _ => return Err("Invalid operation".into()),

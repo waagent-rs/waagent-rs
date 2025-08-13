@@ -5,6 +5,7 @@ use quick_xml::de::from_str;
 use quick_xml::se::to_string;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use std::process::Command;
 use std::time::Duration;
 use sys_info;
 use tokio::time::sleep;
@@ -70,17 +71,26 @@ fn get_memory_usage_percent() -> String {
 }
 
 fn get_processor_time() -> String {
-    // Simple approximation using boot time
-    match sys_info::boottime() {
-        Ok(boot_time) => {
-            let now = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_secs();
-            let uptime = now.saturating_sub(boot_time.tv_sec as u64);
-            format!("{}", uptime)
+    // Just a quick patch for building on non *nix systems
+    #[cfg(not(unix))]
+    {
+        "0".to_string()
+    }
+
+    #[cfg(unix)]
+    {
+        // Simple approximation using boot time
+        match sys_info::boottime() {
+            Ok(boot_time) => {
+                let now = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_secs();
+                let uptime = now.saturating_sub(boot_time.tv_sec as u64);
+                format!("{}", uptime)
+            }
+            Err(_) => "0".to_string(),
         }
-        Err(_) => "0".to_string(),
     }
 }
 
@@ -99,6 +109,78 @@ fn get_os_display_name() -> String {
 
     let os_type = info.os_type().to_string().to_lowercase();
     os_type
+}
+
+async fn add_wireserver_iptables_rule() -> Result<()> {
+    println!("Adding iptables rule for wireserver access...");
+    
+    // First, check if the rule already exists in the security table OUTPUT chain
+    let check_existing = Command::new("sudo")
+        .args(&[
+            "iptables", 
+            "-t", "security",
+            "-C", "OUTPUT", 
+            "-d", "168.63.129.16/32",
+            "-p", "tcp",
+            "-m", "owner",
+            "--uid-owner", "999",
+            "-j", "ACCEPT"
+        ])
+        .output();
+        
+    match check_existing {
+        Ok(result) => {
+            if result.status.success() {
+                println!("Iptables rule for wireserver already exists in security table OUTPUT chain, skipping");
+                return Ok(());
+            }
+        }
+        Err(_) => {
+            // Rule doesn't exist or check failed, continue to add it
+        }
+    }
+    
+    println!("Inserting iptables rule at position 2 in security table OUTPUT chain");
+    
+    let output = Command::new("sudo")
+        .args(&[
+            "iptables",
+            "-t", "security",
+            "-I", "OUTPUT", "2",
+            "-d", "168.63.129.16/32",
+            "-p", "tcp",
+            "-m", "owner",
+            "--uid-owner", "999",
+            "-j", "ACCEPT"
+        ])
+        .output();
+        
+    match output {
+        Ok(result) => {
+            if result.status.success() {
+                println!("Successfully added iptables rule for wireserver to security table OUTPUT chain at position 2");
+                
+                // Show the current security table OUTPUT rules for debugging
+                if cfg!(debug_assertions) {
+                    let show_rules = Command::new("sudo")
+                        .args(&["iptables", "-t", "security", "-L", "OUTPUT", "-n", "--line-numbers"])
+                        .output();
+                    if let Ok(rules_result) = show_rules {
+                        let rules_output = String::from_utf8_lossy(&rules_result.stdout);
+                        println!("Current security table OUTPUT chain rules:\n{}", rules_output);
+                    }
+                }
+            } else {
+                let stderr = String::from_utf8_lossy(&result.stderr);
+                eprintln!("Failed to add iptables rule: {}", stderr);
+            }
+        }
+        Err(e) => {
+            eprintln!("Error executing iptables command: {}", e);
+        }
+    }
+    
+    Ok(())
 }
 
 
@@ -475,11 +557,34 @@ async fn run_heartbeat_loop(client: &Client, goal_state: &GoalState) -> Result<(
 }
 
 async fn fetch_goal_state(client: &Client) -> Result<GoalState> {
-    let response = client
+    let response_result = client
         .get(&format!("{}/machine?comp=goalstate", WIRESERVER_ENDPOINT))
         .header("x-ms-version", WIRESERVER_API_VERSION)
+        .timeout(Duration::from_secs(10))
         .send()
-        .await?;
+        .await;
+    
+    let response = match response_result {
+        Ok(resp) => resp,
+        Err(e) => {
+            if e.is_timeout() || e.is_connect() {
+                eprintln!("Timeout or connection error reaching wireserver: {}", e);
+                eprintln!("Attempting to add iptables rule for wireserver access...");
+                add_wireserver_iptables_rule().await?;
+                
+                // Retry the request after adding the iptables rule
+                println!("Retrying wireserver connection...");
+                client
+                    .get(&format!("{}/machine?comp=goalstate", WIRESERVER_ENDPOINT))
+                    .header("x-ms-version", WIRESERVER_API_VERSION)
+                    .timeout(Duration::from_secs(10))
+                    .send()
+                    .await?
+            } else {
+                return Err(e.into());
+            }
+        }
+    };
     
     let xml = response.text().await?;
     let goal_state = from_str::<GoalState>(&xml)?;
@@ -512,15 +617,40 @@ async fn send_health_report(client: &Client, goal_state: &GoalState) -> Result<(
         println!("Generated health report XML: {}", health_xml);
     }
 
-    let health_response = client
+    let health_response_result = client
         .post(&format!("{}/machine?comp=health", WIRESERVER_ENDPOINT))
         .header("x-ms-version", WIRESERVER_API_VERSION)
         .header("x-ms-agent-name", AGENT_NAME)
         .header("User-Agent", &get_user_agent())
         .header("Content-Type", "text/xml;charset=utf-8")
-        .body(health_xml)
+        .timeout(Duration::from_secs(10))
+        .body(health_xml.clone())
         .send()
-        .await?;
+        .await;
+        
+    let health_response = match health_response_result {
+        Ok(resp) => resp,
+        Err(e) => {
+            if e.is_timeout() || e.is_connect() {
+                eprintln!("Timeout sending health report: {}", e);
+                add_wireserver_iptables_rule().await?;
+                
+                // Retry the request
+                client
+                    .post(&format!("{}/machine?comp=health", WIRESERVER_ENDPOINT))
+                    .header("x-ms-version", WIRESERVER_API_VERSION)
+                    .header("x-ms-agent-name", AGENT_NAME)
+                    .header("User-Agent", &get_user_agent())
+                    .header("Content-Type", "text/xml;charset=utf-8")
+                    .timeout(Duration::from_secs(10))
+                    .body(health_xml)
+                    .send()
+                    .await?
+            } else {
+                return Err(e.into());
+            }
+        }
+    };
         
     println!("Health report status: {}", health_response.status());
     
@@ -629,15 +759,40 @@ async fn send_telemetry_event(client: &Client, telemetry_data: &TelemetryData, e
     
     println!("Sending {} #{} at {}", event_name, count, Utc::now().format("%Y-%m-%d %H:%M:%S UTC"));
     
-    let response = client
+    let response_result = client
         .post(&format!("{}/machine?comp=telemetrydata", WIRESERVER_ENDPOINT))
         .header("x-ms-version", WIRESERVER_API_VERSION)
         .header("x-ms-agent-name", AGENT_NAME)
         .header("User-Agent", &get_user_agent())
         .header("Content-Type", "text/xml;charset=utf-8")
-        .body(telemetry_xml)
+        .timeout(Duration::from_secs(10))
+        .body(telemetry_xml.clone())
         .send()
-        .await?;
+        .await;
+        
+    let response = match response_result {
+        Ok(resp) => resp,
+        Err(e) => {
+            if e.is_timeout() || e.is_connect() {
+                eprintln!("Timeout sending telemetry event {}: {}", event_name, e);
+                add_wireserver_iptables_rule().await?;
+                
+                // Retry the request
+                client
+                    .post(&format!("{}/machine?comp=telemetrydata", WIRESERVER_ENDPOINT))
+                    .header("x-ms-version", WIRESERVER_API_VERSION)
+                    .header("x-ms-agent-name", AGENT_NAME)
+                    .header("User-Agent", &get_user_agent())
+                    .header("Content-Type", "text/xml;charset=utf-8")
+                    .timeout(Duration::from_secs(10))
+                    .body(telemetry_xml)
+                    .send()
+                    .await?
+            } else {
+                return Err(e.into());
+            }
+        }
+    };
         
     println!("{} #{} status: {}", event_name, count, response.status());
     

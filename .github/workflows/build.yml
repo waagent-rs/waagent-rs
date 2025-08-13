@@ -24,10 +24,11 @@ jobs:
         id: build
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -y install rustup pkg-config libssl-dev
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -y -qq install rustup pkg-config libssl-dev
           rustup toolchain install stable
       - name: Build
         run: |
-          cargo check
-          cargo build --release
+          cargo --quiet check
+          cargo test
+          cargo --quiet build --release
           ls -lha target/release

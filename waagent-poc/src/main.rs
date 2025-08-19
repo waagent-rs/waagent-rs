@@ -111,9 +111,33 @@ fn get_os_display_name() -> String {
     os_type
 }
 
+// Helper function to get the uid of a specific user
+fn get_user_uid(username: &str) -> Result<String> {
+    let output = Command::new("id")
+        .args(&["-u", username])
+        .output()
+        .map_err(|e| format!("Failed to execute id command: {}", e))?;
+
+    if output.status.success() {
+        let uid = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if cfg!(debug_assertions) {
+            println!("Found uid {} for user {}", uid, username);
+        }
+        Ok(uid)
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        Err(format!("Failed to get uid for user {}: {}", username, stderr).into())
+    }
+}
+
 async fn add_wireserver_iptables_rule() -> Result<()> {
-    println!("Adding iptables rule for wireserver access...");
-    
+    if cfg!(debug_assertions) {
+        println!("Adding iptables rule for wireserver access...");
+    }
+
+    // Get the uid of the waagent-rs user dynamically
+    let waagent_uid = get_user_uid("waagent-rs")?;
+
     // First, check if the rule already exists in the security table OUTPUT chain
     let check_existing = Command::new("sudo")
         .args(&[
@@ -123,7 +147,7 @@ async fn add_wireserver_iptables_rule() -> Result<()> {
             "-d", "168.63.129.16/32",
             "-p", "tcp",
             "-m", "owner",
-            "--uid-owner", "999",
+            "--uid-owner", &waagent_uid,
             "-j", "ACCEPT"
         ])
         .output();
@@ -131,7 +155,9 @@ async fn add_wireserver_iptables_rule() -> Result<()> {
     match check_existing {
         Ok(result) => {
             if result.status.success() {
-                println!("Iptables rule for wireserver already exists in security table OUTPUT chain, skipping");
+                if cfg!(debug_assertions) {
+                    println!("Iptables rule for wireserver already exists in security table OUTPUT chain, skipping");
+                }
                 return Ok(());
             }
         }
@@ -139,9 +165,11 @@ async fn add_wireserver_iptables_rule() -> Result<()> {
             // Rule doesn't exist or check failed, continue to add it
         }
     }
-    
-    println!("Inserting iptables rule at position 2 in security table OUTPUT chain");
-    
+
+    if cfg!(debug_assertions) {
+        println!("Inserting iptables rule at position 2 in security table OUTPUT chain");
+    }
+
     let output = Command::new("sudo")
         .args(&[
             "iptables",
@@ -150,7 +178,7 @@ async fn add_wireserver_iptables_rule() -> Result<()> {
             "-d", "168.63.129.16/32",
             "-p", "tcp",
             "-m", "owner",
-            "--uid-owner", "999",
+            "--uid-owner", &waagent_uid,
             "-j", "ACCEPT"
         ])
         .output();
@@ -158,10 +186,9 @@ async fn add_wireserver_iptables_rule() -> Result<()> {
     match output {
         Ok(result) => {
             if result.status.success() {
-                println!("Successfully added iptables rule for wireserver to security table OUTPUT chain at position 2");
-                
-                // Show the current security table OUTPUT rules for debugging
                 if cfg!(debug_assertions) {
+                    println!("Successfully added iptables rule for wireserver to security table OUTPUT chain at position 2");
+                    // Show the current security table OUTPUT rules for debugging
                     let show_rules = Command::new("sudo")
                         .args(&["iptables", "-t", "security", "-L", "OUTPUT", "-n", "--line-numbers"])
                         .output();

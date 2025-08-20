@@ -416,7 +416,6 @@ async fn run_heartbeat_loop(client: &Client, goal_state: &GoalState) -> Result<(
         
         match event_name {
             "HeartBeat" => {
-                //let sys_info = get_system_info();
                 let sys_info = SystemStats::current();
                 params.extend(vec![
                     Param {

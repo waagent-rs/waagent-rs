@@ -1,4 +1,7 @@
 use sysinfo::System;
+use std::sync::OnceLock;
+
+static CACHED_SYSTEM_INFO: OnceLock<SystemInfo> = OnceLock::new();
 
 #[derive(Debug)]
 pub struct SystemInfo {
@@ -15,27 +18,47 @@ pub struct SystemStats {
 }
 
 impl SystemInfo {
-    pub fn current() -> Self {
-        let hostname = get_hostname();
-        let os_version = get_os_version();
-        let os_name = get_os_display_name();
+    pub fn current() -> &'static SystemInfo {
+        CACHED_SYSTEM_INFO.get_or_init(|| {
+            let hostname = get_hostname();
+            let os_version = get_os_version();
+            let os_name = get_os_display_name();
 
-        SystemInfo {
-            hostname,
-            os_name,
-            os_version,
-        }
+            SystemInfo {
+                hostname,
+                os_name,
+                os_version,
+            }
+        })
     }
 }
 
 impl SystemStats {
     pub fn current() -> Self {
-        let mut system = System::new_all();
-        system.refresh_all();
+        // Use System::new() instead of new_all() for faster initialization
+        let mut system = System::new();
+        system.refresh_cpu_all();
+        system.refresh_memory();
 
-        let cpu_usage = get_cpu_usage_percent();
-        let memory_usage = get_memory_usage_percent();
-        let uptime_seconds = get_uptime_seconds();
+        let cpu_usage = get_cpu_usage_percent_with(&system);
+        let memory_usage = get_memory_usage_percent_with(&system);
+        let uptime_seconds = get_uptime_seconds_with(&system);
+
+        SystemStats {
+            cpu_usage,
+            memory_usage,
+            uptime_seconds,
+        }
+    }
+
+    /// More efficient version when you have an existing System instance
+    pub fn from_system(system: &mut System) -> Self {
+        system.refresh_cpu_all();
+        system.refresh_memory();
+
+        let cpu_usage = get_cpu_usage_percent_with(system);
+        let memory_usage = get_memory_usage_percent_with(system);
+        let uptime_seconds = get_uptime_seconds_with(system);
 
         SystemStats {
             cpu_usage,
@@ -62,26 +85,25 @@ fn get_hostname() -> String {
     hostname.to_string()
 }
 
-fn get_cpu_usage_percent() -> f64 {
-    System::load_average().one
+fn get_cpu_usage_percent_with(system: &System) -> f64 {
+    // Use global CPU usage from the system
+    system.global_cpu_usage() as f64
 }
 
 // Get memory usage percentage
-fn get_memory_usage_percent() -> f64 {
-    let mut system = System::new_all();
-    system.refresh_all();
+fn get_memory_usage_percent_with(system: &System) -> f64 {
     let used = system.used_memory();
     let total = system.total_memory();
-    let usage_percent = (used as f64 / total as f64) * 100.0;
-    usage_percent
+    if total == 0 {
+        0.0
+    } else {
+        (used as f64 / total as f64) * 100.0
+    }
 }
 
 // Get OS display name
 fn get_os_display_name() -> String {
-    let mut system = System::new_all();
-    system.refresh_all();
-
-    // Get OS name using the static method
+    // Get OS name using the static method - no System instance needed
     let os_name = System::name().unwrap_or_else(|| "Linux".to_string()).to_lowercase();
 
     // Try to match known distributions
@@ -110,30 +132,8 @@ fn get_os_version() -> String {
 }
 
 // Get system uptime in seconds
-fn get_uptime_seconds() -> u64 {
-    #[cfg(all(not(unix), not(windows)))]
-    {
-        0
-    }
-
-    // Simple approximation using boot time
-    #[cfg(unix)]    
-    {
-        let mut system = System::new_all();
-        system.refresh_all();
-        System::uptime()
-    }
-
-    #[cfg(windows)]
-    {
-        use winapi::um::sysinfoapi::GetTickCount64;
-        
-        unsafe {
-            let uptime_ms = GetTickCount64();
-            let uptime_seconds = uptime_ms / 1000;
-            uptime_seconds
-        }
-    }
+fn get_uptime_seconds_with(_system: &System) -> u64 {
+    System::uptime()
 }
 
 // Unit tests for the system module
@@ -187,7 +187,9 @@ mod tests {
 
     #[test]
     fn test_get_cpu_usage_percent() {
-        let cpu_usage = get_cpu_usage_percent();
+        let mut system = System::new_all();
+        system.refresh_cpu_all();
+        let cpu_usage = get_cpu_usage_percent_with(&system);
         
         // Should return a valid float
         assert!(cpu_usage >= 0.0, "CPU usage should be non-negative");
@@ -198,7 +200,9 @@ mod tests {
 
     #[test]
     fn test_get_memory_usage_percent() {
-        let memory_usage = get_memory_usage_percent();
+        let mut system = System::new_all();
+        system.refresh_memory();
+        let memory_usage = get_memory_usage_percent_with(&system);
         
         // Should return a valid float
         assert!(memory_usage >= 0.0 && memory_usage <= 100.0, "Memory usage should be between 0 and 100");
@@ -234,7 +238,8 @@ mod tests {
 
     #[test]
     fn test_get_uptime_seconds() {
-        let uptime = get_uptime_seconds();
+        let system = System::new_all();
+        let uptime = get_uptime_seconds_with(&system);
         
         // Should return a valid u64 (non-negative by type)
         // In most cases, uptime should be greater than 0 (system has been running for some time)
@@ -279,6 +284,9 @@ mod tests {
         assert_eq!(info1.hostname, info2.hostname, "Hostname should be consistent");
         assert_eq!(info1.os_name, info2.os_name, "OS name should be consistent");
         assert_eq!(info1.os_version, info2.os_version, "OS version should be consistent");
+        
+        // Test that cached values are actually the same reference
+        assert!(std::ptr::eq(info1, info2), "SystemInfo should return cached instance");
     }
 
     #[test]

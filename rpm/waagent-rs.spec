@@ -41,7 +41,7 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
-* Wed Auf 20 2025 Francisco Ortiz (francisco.ortiz@microsoft.com) - 1.0.2
+* Wed Aug 20 2025 Francisco Ortiz (francisco.ortiz@microsoft.com) - 1.0.2
 - Making changes o files, RUL, sources and build
 * Tue Aug 19 2025 Francisco Ortiz (francisco.ortiz@microsoft.com) - 1.0.1
 - Initial package

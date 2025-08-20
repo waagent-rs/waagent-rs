@@ -1,22 +1,21 @@
 #
-# spec file for package sudo-rs
+# spec file for package waagent-rs
 #
 
 Name:           waagent-rs
-Version:        1.0.1
+Version:        1.0.2
 Release:        1%{?dist}
 Summary:        Azure Agent, in Rust
 
 License:        MIT OR Apache-2.0
-URL:            
-Source0:        
+URL:            https://github.com/waagent-rs/waagent-rs.git        
+Source:         %{url}/archive/v%{version}/waagent-rs-%{version}.tar.gz
 
 BuildRequires:  rust
 BuildRequires:  cargo
-Buildrequires:  gcc
+BuildRequires:  gcc
 BuildRequires:  openssl-dev
 
-%global debug_package %{nil}
 
 %description
 Azure Agent, in Rust
@@ -26,7 +25,7 @@ Azure Agent, in Rust
 
 
 %build
-cargo build --release --features 
+cargo build --release
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -34,6 +33,7 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %files
+/usr/bin/waagent-rc
 %license LICENSE-APACHE
 %license LICENSE-MIT
 %doc README.md
@@ -41,5 +41,7 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Auf 20 2025 Francisco Ortiz (francisco.ortiz@microsoft.com) - 1.0.2
+- Making changes o files, RUL, sources and build
 * Tue Aug 19 2025 Francisco Ortiz (francisco.ortiz@microsoft.com) - 1.0.1
 - Initial package

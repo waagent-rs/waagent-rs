@@ -1,3 +1,5 @@
+use sysinfo::System;
+
 #[derive(Debug)]
 pub struct SystemInfo {
     pub hostname: String,
@@ -28,6 +30,9 @@ impl SystemInfo {
 
 impl SystemStats {
     pub fn current() -> Self {
+        let mut system = System::new_all();
+        system.refresh_all();
+
         let cpu_usage = get_cpu_usage_percent();
         let memory_usage = get_memory_usage_percent();
         let uptime_seconds = get_uptime_seconds();
@@ -53,46 +58,55 @@ impl SystemStats {
 }
 
 fn get_hostname() -> String {
-    sys_info::hostname().unwrap_or_else(|_| "Undefined".to_string())
+    let hostname = System::host_name().unwrap_or_else(|| "unknown".to_string());
+    hostname.to_string()
 }
 
 fn get_cpu_usage_percent() -> f64 {
-    // Get CPU load average as a simple approximation
-    match sys_info::loadavg() {
-        Ok(load) => load.one * 100.0,
-        Err(_) => 0.0,
-    }
+    System::load_average().one
 }
 
 // Get memory usage percentage
 fn get_memory_usage_percent() -> f64 {
-    match sys_info::mem_info() {
-        Ok(mem) => {
-            let used = mem.total - mem.free;
-            let usage_percent = (used as f64 / mem.total as f64) * 100.0;
-            usage_percent
-        }
-        Err(_) => 0.0,
+    let mut system = System::new_all();
+    system.refresh_all();
+    let used = system.used_memory();
+    let total = system.total_memory();
+    let usage_percent = (used as f64 / total as f64) * 100.0;
+    usage_percent
+}
+
+// Get OS display name
+fn get_os_display_name() -> String {
+    let mut system = System::new_all();
+    system.refresh_all();
+
+    // Get OS name using the static method
+    let os_name = System::name().unwrap_or_else(|| "Linux".to_string()).to_lowercase();
+
+    // Try to match known distributions
+    if os_name.contains("ubuntu") || os_name.contains("debian") || os_name.contains("centos") || os_name.contains("fedora") {
+        os_name
+    } else if os_name.contains("azure linux") {
+        "Azurelinux".to_lowercase().to_string()
+    } else if os_name.contains("rhel") || os_name.to_lowercase().contains("red hat") {
+        "RHEL".to_lowercase().to_string()
+    } else if os_name.contains("opensuse") || os_name.contains("suse") {
+        "sles".to_string()
+    } else {
+        "Linux".to_lowercase().to_string()
     }
 }
 
 // Get OS version
 fn get_os_version() -> String {
-    let info = os_info::get();
-    
-    let version = info.version().to_string();
-    // There could be two bugs in os_info 3.12.0, if confirmed we need to move this comment
-    // to a doc in our repo, submit an issue and if possible submit a patch.
-    // version for ubuntu should return "24.04.3" but instead returns "24.4.0"
-    version
-}
-
-// Get OS display name
-fn get_os_display_name() -> String {
-    let info = os_info::get();
-
-    let os_type = info.os_type().to_string().to_lowercase();
-    os_type
+    // Try to get the actual OS version from sysinfo static method
+    if let Some(os_version) = System::os_version() {
+        os_version
+    } else {
+        // Fallback to Unknown
+        format!("Unknown")
+    }
 }
 
 // Get system uptime in seconds
@@ -105,17 +119,9 @@ fn get_uptime_seconds() -> u64 {
     // Simple approximation using boot time
     #[cfg(unix)]    
     {
-        match sys_info::boottime() {
-            Ok(boot_time) => {
-                let now = std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap_or_default()
-                    .as_secs();
-                let uptime = now.saturating_sub(boot_time.tv_sec as u64);
-                uptime
-            }
-            Err(_) => 0,
-        }
+        let mut system = System::new_all();
+        system.refresh_all();
+        System::uptime()
     }
 
     #[cfg(windows)]

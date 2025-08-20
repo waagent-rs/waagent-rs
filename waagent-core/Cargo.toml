@@ -19,8 +19,7 @@ authors = [
 ]
 
 [dependencies]
-sys-info = { workspace = true }
-os_info = { workspace = true }
+sysinfo = { workspace = true }
 tracing = { workspace = true }
 
 [target.'cfg(windows)'.dependencies]

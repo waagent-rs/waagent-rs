@@ -23,7 +23,6 @@ clap = { version = "4.5.45", features = ["derive" ] }
 # Tokio / Async
 tokio = { version = "1", features = ["signal", "process", "macros", "rt-multi-thread"] }
 
-sys-info = "0.9.1"
-os_info = "3.12.0"
+sysinfo = "0.37"
 
 winapi = { version = "0.3", features = ["sysinfoapi"] }

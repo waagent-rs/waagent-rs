@@ -1,14 +1,14 @@
 use base64::prelude::*;
 use chrono::Utc;
-use os_info;
 use quick_xml::de::from_str;
 use quick_xml::se::to_string;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 use std::time::Duration;
-use sys_info;
 use tokio::time::sleep;
+use waagent_core::system::SystemInfo;
+use waagent_core::system::SystemStats;
 
 // Constants
 const WIRESERVER_ENDPOINT: &str = "http://168.63.129.16";
@@ -34,82 +34,6 @@ fn get_user_agent() -> String {
     format!("{}/{}", AGENT_NAME, AGENT_VERSION)
 }
 
-fn get_system_info() -> SystemInfo {
-    let hostname = match sys_info::hostname() {
-        Ok(name) => name,
-        Err(e) => {
-            eprintln!("Warning: Failed to get hostname: {}", e);
-            "Undefined".to_string()
-        }
-    };
-    
-    SystemInfo {
-        hostname,
-        cpu_usage: get_cpu_usage_percent(),
-        memory_usage: get_memory_usage_percent(),
-        processor_time: get_processor_time(),
-    }
-}
-
-fn get_cpu_usage_percent() -> String {
-    // Get CPU load average as a simple approximation
-    match sys_info::loadavg() {
-        Ok(load) => format!("{:.1}", load.one * 100.0),
-        Err(_) => "0".to_string(),
-    }
-}
-
-fn get_memory_usage_percent() -> String {
-    match (sys_info::mem_info(), sys_info::mem_info()) {
-        (Ok(mem), _) => {
-            let used = mem.total - mem.free;
-            let usage_percent = (used as f64 / mem.total as f64) * 100.0;
-            format!("{:.1}", usage_percent)
-        }
-        _ => "0".to_string(),
-    }
-}
-
-fn get_processor_time() -> String {
-    // Just a quick patch for building on non *nix systems
-    #[cfg(not(unix))]
-    {
-        "0".to_string()
-    }
-
-    #[cfg(unix)]
-    {
-        // Simple approximation using boot time
-        match sys_info::boottime() {
-            Ok(boot_time) => {
-                let now = std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap_or_default()
-                    .as_secs();
-                let uptime = now.saturating_sub(boot_time.tv_sec as u64);
-                format!("{}", uptime)
-            }
-            Err(_) => "0".to_string(),
-        }
-    }
-}
-
-fn get_os_version(_sys_info: &SystemInfo) -> String {
-    let info = os_info::get();
-    
-    let version = info.version().to_string();
-    // There could be two bugs in os_info 3.12.0, if confirmed we need to move this comment
-    // to a doc in our repo, submit an issue and if possible submit a patch.
-    // version for ubuntu should return "24.04.3" but instead returns "24.4.0"
-    version
-}
-
-fn get_os_display_name() -> String {
-    let info = os_info::get();
-
-    let os_type = info.os_type().to_string().to_lowercase();
-    os_type
-}
 
 // Helper function to get the uid of a specific user
 fn get_user_uid(username: &str) -> Result<String> {
@@ -211,13 +135,6 @@ async fn add_wireserver_iptables_rule() -> Result<()> {
 }
 
 
-#[derive(Debug)]
-struct SystemInfo {
-    hostname: String,
-    cpu_usage: String,
-    memory_usage: String,
-    processor_time: String,
-}
 
 fn create_base_params(goal_state: &GoalState) -> Vec<Param> {
     vec![
@@ -499,7 +416,7 @@ async fn run_heartbeat_loop(client: &Client, goal_state: &GoalState) -> Result<(
         
         match event_name {
             "HeartBeat" => {
-                let sys_info = get_system_info();
+                let sys_info = SystemStats::current();
                 params.extend(vec![
                     Param {
                         name: "IsVersionFromRSM".to_string(),
@@ -515,15 +432,15 @@ async fn run_heartbeat_loop(client: &Client, goal_state: &GoalState) -> Result<(
                     },
                     Param {
                         name: "CPU".to_string(),
-                        value: sys_info.cpu_usage,
+                        value: sys_info.cpu_usage_str(),
                     },
                     Param {
                         name: "Memory".to_string(),
-                        value: sys_info.memory_usage,
+                        value: sys_info.memory_usage_str(),
                     },
                     Param {
                         name: "ProcessorTime".to_string(),
-                        value: sys_info.processor_time,
+                        value: sys_info.uptime_seconds_str(),
                     },
                 ]);
             },
@@ -690,8 +607,7 @@ async fn send_health_report(client: &Client, goal_state: &GoalState) -> Result<(
 }
 
 async fn send_status_report(client: &Client, goal_state: &GoalState) -> Result<()> {
-    let sys_info = get_system_info();
-    
+    let sys_info = SystemInfo::current();
     let status_content = serde_json::json!({
         "version": "1.1",
         "timestampUTC": get_rfc3339_timestamp(),
@@ -729,8 +645,8 @@ async fn send_status_report(client: &Client, goal_state: &GoalState) -> Result<(
         },
         "guestOSInfo": {
             "computerName": sys_info.hostname,
-            "osName": get_os_display_name(),
-            "osVersion": get_os_version(&sys_info),
+            "osName": sys_info.os_name,
+            "osVersion": sys_info.os_version,
             "version": AGENT_VERSION
         },
         "supportedFeatures": [

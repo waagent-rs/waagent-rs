@@ -14,6 +14,8 @@ macro_rules! load_defaults_hashmap {
     };
 }
 
+pub const NONE_STR: &str = "None";
+
 impl Default for Config {
     fn default() -> Self {
         Self {
@@ -76,13 +78,13 @@ pub fn get_config_defaults() -> HashMap<String,ConfigValue> {
             "OS.HomeDir" => "/home",
             "OS.PasswordPath" => "/etc/shadow",
             "OS.SudoersDir" => "/etc/sudoers.d",
-            "OS.RootDeviceScsiTimeout" => "None",
+            "OS.RootDeviceScsiTimeout" => NONE_STR,
             "Provisioning.Agent" => "auto",
             "Provisioning.SshHostKeyPairType" => "rsa",
             "Provisioning.PasswordCryptId" => "6",
-            "HttpProxy.Host" => "None",
+            "HttpProxy.Host" => NONE_STR,
             "ResourceDisk.MountPoint" => "/mnt/resource",
-            "ResourceDisk.MountOptions" => "None",
+            "ResourceDisk.MountOptions" => NONE_STR,
             "ResourceDisk.Filesystem" => "ext3",
             "AutoUpdate.GAFamily" => "Prod",
             "Policy.PolicyFilePath" => "/etc/waagent_policy.json",

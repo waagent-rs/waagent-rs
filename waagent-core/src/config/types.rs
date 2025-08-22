@@ -5,8 +5,8 @@ use crate::config::defaults::get_config_defaults;
 pub enum ConfigValue {
     Bool(bool),
     String(String),
-    Integer(u32), // config values shouldn't be negative and probably not greater then
-    Port(Option<u16>), //u16 becuase ports 2^16 = 0-65535
+    Integer(u32), // config values shouldn't be negative and are probably not greater than u32::MAX
+    Port(Option<u16>), //u16 because ports 2^16 = 0-65535
 }
 
 #[derive(Debug, PartialEq)]

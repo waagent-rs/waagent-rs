@@ -37,7 +37,7 @@ fn test_show_config_output_from_file() {
     let test_config_path: &Path = Path::new("tests/config/data/waagent-test.conf");
     let config = Config::from_file(test_config_path);
     let output = config
-        .expect(&format!("Missing file at {:?}", test_config_path))
+        .expect("Insufficient permissions or missing config file at tests/config/data/waagent-test.conf")
         .show();
 
     let schema = ConfigSchema::new();
@@ -57,7 +57,7 @@ fn test_show_config_output_from_file() {
 #[rustfmt::skip]
 fn test_config_file_example() {
     let test_config_path: &Path = Path::new("tests/config/data/waagent-test.conf");
-    let config = Config::from_file(test_config_path).expect(&format!("Missing file at {:?}",  test_config_path));
+    let config = Config::from_file(test_config_path).expect("Insufficient permissions or missing config file at tests/config/data/waagent-test.conf");
     
     assert_ne!(config.get_value(""), Some(&(ConfigValue::String("Value0".to_string()))));
     assert_ne!(config.get_value("FauxKey1"), Some(&ConfigValue::String("Value1".to_string())));

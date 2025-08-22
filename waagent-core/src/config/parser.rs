@@ -1,3 +1,4 @@
+use super::defaults::NONE_STR;
 use super::{Config, ConfigSchema, ConfigValue, ExpectedType, HashMap};
 use crate::utils::fileutils::read_file;
 use std::path::Path;
@@ -94,7 +95,7 @@ fn parse_bool_value(value: &str) -> Option<ConfigValue> {
 
 fn parse_string_value(value: &str) -> Option<ConfigValue> {
     match value {
-        "\"\"" => Some(ConfigValue::String(String::from("None"))),
+        "\"\"" => Some(ConfigValue::String(String::from(NONE_STR))),
         v if !v.is_empty() => Some(ConfigValue::String(v.to_string())),
         _ => None,
     }
@@ -105,7 +106,7 @@ fn parse_integer_value(value: &str) -> Option<ConfigValue> {
 }
 
 fn parse_port_value(value: &str) -> Option<ConfigValue> {
-    if value == "None" || value.is_empty() {
+    if value == NONE_STR || value.is_empty() {
         Some(ConfigValue::Port(None))
     } else {
         match value.parse::<u16>() {

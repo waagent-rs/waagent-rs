@@ -2,10 +2,14 @@ use std::fmt;
 
 use anyhow::Result;
 use clap::{Parser, ValueEnum};
-use tracing::{info, error, debug};
+use tracing::{debug, error, info};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
-use waagent_core::network::firewall::{create_firewall_manager, Action, Direction, FirewallRule, Protocol};
+use waagent_core::network::firewall::{
+    create_firewall_manager, Action, Direction, FirewallRule, Protocol,
+};
+
+use waagent_core::config::Config;
 
 #[derive(ValueEnum, Clone, Debug, PartialEq)]
 enum LoggingLevel {
@@ -42,13 +46,17 @@ struct Args {
     /// Whether to log line numbers or not
     #[arg(long, default_value_t = false)]
     log_line_numbers: bool,
+
+    /// Show configuration
+    #[arg(long, default_value_t = false)]
+    show_configuration: bool,
 }
 
 #[tokio::main]
 #[tracing::instrument]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    
+
     // Initialize tracing
     init_tracing(&args.log_level, &args.log_line_numbers)?;
     debug!("arguments: {:?}", args);
@@ -57,13 +65,19 @@ async fn main() -> Result<()> {
         configure_firewall().await?;
     }
 
+    // this is just for demonstration purposes only. This should be more robust. Do not keep this in prod like this.
+    if args.show_configuration {
+        let config = Config::default();
+        config.show();
+    }
+
     Ok(())
 }
 
 #[tracing::instrument]
 fn init_tracing(log_level: &LoggingLevel, log_line_numbers: &bool) -> Result<()> {
-    let env_filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new(log_level.to_string()));
+    let env_filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(log_level.to_string()));
 
     let mut format = tracing_subscriber::fmt::layer()
         .with_target(false)
@@ -71,9 +85,7 @@ fn init_tracing(log_level: &LoggingLevel, log_line_numbers: &bool) -> Result<()>
 
     // Include file and line number if debug level
     if *log_line_numbers {
-        format = format
-            .with_file(true)
-            .with_line_number(true);
+        format = format.with_file(true).with_line_number(true);
     }
 
     tracing_subscriber::registry()
@@ -90,7 +102,7 @@ async fn configure_firewall() -> Result<()> {
     info!("Configure firewall rules ...");
 
     let firewall_manager = create_firewall_manager();
-    
+
     let rule = FirewallRule {
         name: "AllowAzureMetadata".into(),
         direction: Direction::Outbound,
@@ -104,7 +116,7 @@ async fn configure_firewall() -> Result<()> {
 
     debug!("Adding firewall rule: {:?}", rule);
     let result = firewall_manager.add_rule(&rule);
-    
+
     if result.is_err() {
         let error = result.unwrap_err();
         error!("Failed to add firewall rule: {:?}", error);

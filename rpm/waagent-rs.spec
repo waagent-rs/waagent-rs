@@ -3,7 +3,7 @@
 #
 
 Name:           waagent-rs
-Version:        1.0.2
+Version:        0.1.0
 Release:        1%{?dist}
 Summary:        Azure Agent, in Rust
 
@@ -35,13 +35,10 @@ rm -rf $RPM_BUILD_ROOT
 %files
 /usr/bin/waagent-rc
 %license LICENSE-APACHE
-%license LICENSE-MIT
 %doc README.md
 
 
 
 %changelog
-* Wed Aug 20 2025 Francisco Ortiz (francisco.ortiz@microsoft.com) - 1.0.2
-- Making changes o files, RUL, sources and build
-* Tue Aug 19 2025 Francisco Ortiz (francisco.ortiz@microsoft.com) - 1.0.1
+* Tue Aug 19 2025 Francisco Ortiz (francisco.ortiz@microsoft.com) - 0.1.0
 - Initial package

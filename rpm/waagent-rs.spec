@@ -32,6 +32,7 @@ cargo build --release
 
 %install
 install -Dm0755 target/release/waagent-rs-poc %{buildroot}/usr/bin/waagent-rs-poc
+install -Dm0644 waagent-poc/sudoers.d/waagent-rs %{buildroot}/etc/sudoers.d/waagent-rs
 install -Dm0755 init/systemd/waagent-rs.service %{buildroot}/usr/lib/systemd/system/waagent-rs.service
 
 %pre

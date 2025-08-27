@@ -32,7 +32,7 @@ source $HOME/.cargo/env
 cargo build --release
 
 %install
-install -Dm0755 target/release/waagent-rs-poc %{buildroot}/usr/lib/cargo/bin/waagent-rs-poc
+install -Dm0755 target/release/waagent-rs-poc %{buildroot}/usr/bin/waagent-rs-poc
 install -Dm0755 init/systemd/waagent-rs.service %{buildroot}/usr/lib/systemd/system/waagent-rs.service
 
 %pre

@@ -26,7 +26,6 @@ rustup default 1.88.0
 
 %setup -n waagent-rs-%{version}
 
-
 %build
 source $HOME/.cargo/env
 cargo build --release

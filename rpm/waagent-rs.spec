@@ -33,8 +33,8 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %files
-/usr/bin/waagent-rc
-/usr/lib/systemd/system/waagent-rc
+/usr/bin/waagent-rs
+/usr/lib/systemd/system/waagent-rs
 %license LICENSE-APACHE
 %doc README.md
 

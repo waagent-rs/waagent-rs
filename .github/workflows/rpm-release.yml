@@ -1,0 +1,75 @@
+name: Build and Release waagent-rs RPM
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-rpm:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+        include:
+          - arch: x86_64
+            container: mcr.microsoft.com/azurelinux/base/core:3.0
+            rpm_arch: x86_64
+          - arch: aarch64
+            container: mcr.microsoft.com/azurelinux/base/core:3.0
+            rpm_arch: aarch64
+
+    container:
+      image: ${{ matrix.container }}
+
+    steps:
+      - name: Install build dependencies
+        run: |
+          GNUPGHOME=/root/.gnupg tdnf --nogpgcheck -y update
+          GNUPGHOME=/root/.gnupg tdnf --nogpgcheck -y install rpmdevtools gcc ca-certificates pkg-config openssl-dev kernel-headers
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare RPM build environment
+        run: |
+          rpmdev-setuptree
+          cp waagent-rs/rpm/*.spec ~/rpmbuild/SPECS/
+          spectool -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
+
+      - name: Build RPM
+        run: |
+          rpmbuild -ba ~/rpmbuild/SPECS/*.spec --target ${{ matrix.rpm_arch }}
+
+      - name: Find built RPM
+        id: find_rpm
+        run: |
+          RPM_PATH=$(find ~/rpmbuild/RPMS -name "*.rpm" | grep -v debuginfo | head -n 1)
+          echo "rpm_path=$RPM_PATH" >> $GITHUB_OUTPUT
+
+      - name: Upload RPM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: waagent-rs-${{ matrix.arch }}
+          path: ${{ steps.find_rpm.outputs.rpm_path }}
+
+  release:
+    needs: build-rpm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./artifacts/**/*.rpm
+
+#Change log
+#    Wed Aug 27 2025 Mitch Tenorio (mitenori@microsoft.com)
+#

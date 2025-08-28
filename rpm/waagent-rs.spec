@@ -26,13 +26,13 @@ rustup default 1.88.0
 
 %setup -n waagent-rs-%{version}
 
-
 %build
 source $HOME/.cargo/env
 cargo build --release
 
 %install
-install -Dm0755 target/release/waagent-rs-poc %{buildroot}/usr/lib/cargo/bin/waagent-rs-poc
+install -Dm0755 target/release/waagent-rs-poc %{buildroot}/usr/bin/waagent-rs-poc
+install -Dm0440 waagent-poc/sudoers.d/waagent-rs %{buildroot}/etc/sudoers.d/waagent-rs
 install -Dm0755 init/systemd/waagent-rs.service %{buildroot}/usr/lib/systemd/system/waagent-rs.service
 
 %pre
@@ -40,6 +40,7 @@ getent passwd waagent-rs >/dev/null || useradd -r -d /nonexistent -s /usr/sbin/n
 
 %files
 /usr/bin/waagent-rs-poc
+/etc/sudoers.d/waagent-rs
 /usr/lib/systemd/system/waagent-rs.service
 %license LICENSE
 %doc README.md

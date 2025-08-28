@@ -37,7 +37,7 @@ jobs:
       - name: Prepare RPM build environment
         run: |
           rpmdev-setuptree
-          cp waagent-rs/rpm/*.spec ~/rpmbuild/SPECS/
+          cp rpm/*.spec ~/rpmbuild/SPECS/
           spectool -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
 
       - name: Build RPM

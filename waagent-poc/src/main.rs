@@ -1,14 +1,14 @@
 use base64::prelude::*;
 use chrono::Utc;
-use os_info;
 use quick_xml::de::from_str;
 use quick_xml::se::to_string;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 use std::time::Duration;
-use sys_info;
 use tokio::time::sleep;
+use waagent_core::system::SystemInfo;
+use waagent_core::system::SystemStats;
 
 // Constants
 const WIRESERVER_ENDPOINT: &str = "http://168.63.129.16";
@@ -34,77 +34,34 @@ fn get_user_agent() -> String {
     format!("{}/{}", AGENT_NAME, AGENT_VERSION)
 }
 
-fn get_system_info() -> SystemInfo {
-    let hostname = match sys_info::hostname() {
-        Ok(name) => name,
-        Err(e) => {
-            eprintln!("Warning: Failed to get hostname: {}", e);
-            "Undefined".to_string()
+
+// Helper function to get the uid of a specific user
+fn get_user_uid(username: &str) -> Result<String> {
+    let output = Command::new("id")
+        .args(&["-u", username])
+        .output()
+        .map_err(|e| format!("Failed to execute id command: {}", e))?;
+
+    if output.status.success() {
+        let uid = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if cfg!(debug_assertions) {
+            println!("Found uid {} for user {}", uid, username);
         }
-    };
-    
-    SystemInfo {
-        hostname,
-        cpu_usage: get_cpu_usage_percent(),
-        memory_usage: get_memory_usage_percent(),
-        processor_time: get_processor_time(),
+        Ok(uid)
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        Err(format!("Failed to get uid for user {}: {}", username, stderr).into())
     }
-}
-
-fn get_cpu_usage_percent() -> String {
-    // Get CPU load average as a simple approximation
-    match sys_info::loadavg() {
-        Ok(load) => format!("{:.1}", load.one * 100.0),
-        Err(_) => "0".to_string(),
-    }
-}
-
-fn get_memory_usage_percent() -> String {
-    match (sys_info::mem_info(), sys_info::mem_info()) {
-        (Ok(mem), _) => {
-            let used = mem.total - mem.free;
-            let usage_percent = (used as f64 / mem.total as f64) * 100.0;
-            format!("{:.1}", usage_percent)
-        }
-        _ => "0".to_string(),
-    }
-}
-
-fn get_processor_time() -> String {
-    // Simple approximation using boot time
-    match sys_info::boottime() {
-        Ok(boot_time) => {
-            let now = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_secs();
-            let uptime = now.saturating_sub(boot_time.tv_sec as u64);
-            format!("{}", uptime)
-        }
-        Err(_) => "0".to_string(),
-    }
-}
-
-fn get_os_version(_sys_info: &SystemInfo) -> String {
-    let info = os_info::get();
-    
-    let version = info.version().to_string();
-    // There could be two bugs in os_info 3.12.0, if confirmed we need to move this comment
-    // to a doc in our repo, submit an issue and if possible submit a patch.
-    // version for ubuntu should return "24.04.3" but instead returns "24.4.0"
-    version
-}
-
-fn get_os_display_name() -> String {
-    let info = os_info::get();
-
-    let os_type = info.os_type().to_string().to_lowercase();
-    os_type
 }
 
 async fn add_wireserver_iptables_rule() -> Result<()> {
-    println!("Adding iptables rule for wireserver access...");
-    
+    if cfg!(debug_assertions) {
+        println!("Adding iptables rule for wireserver access...");
+    }
+
+    // Get the uid of the waagent-rs user dynamically
+    let waagent_uid = get_user_uid("waagent-rs")?;
+
     // First, check if the rule already exists in the security table OUTPUT chain
     let check_existing = Command::new("sudo")
         .args(&[
@@ -114,7 +71,7 @@ async fn add_wireserver_iptables_rule() -> Result<()> {
             "-d", "168.63.129.16/32",
             "-p", "tcp",
             "-m", "owner",
-            "--uid-owner", "999",
+            "--uid-owner", &waagent_uid,
             "-j", "ACCEPT"
         ])
         .output();
@@ -122,7 +79,9 @@ async fn add_wireserver_iptables_rule() -> Result<()> {
     match check_existing {
         Ok(result) => {
             if result.status.success() {
-                println!("Iptables rule for wireserver already exists in security table OUTPUT chain, skipping");
+                if cfg!(debug_assertions) {
+                    println!("Iptables rule for wireserver already exists in security table OUTPUT chain, skipping");
+                }
                 return Ok(());
             }
         }
@@ -130,9 +89,11 @@ async fn add_wireserver_iptables_rule() -> Result<()> {
             // Rule doesn't exist or check failed, continue to add it
         }
     }
-    
-    println!("Inserting iptables rule at position 2 in security table OUTPUT chain");
-    
+
+    if cfg!(debug_assertions) {
+        println!("Inserting iptables rule at position 2 in security table OUTPUT chain");
+    }
+
     let output = Command::new("sudo")
         .args(&[
             "iptables",
@@ -141,7 +102,7 @@ async fn add_wireserver_iptables_rule() -> Result<()> {
             "-d", "168.63.129.16/32",
             "-p", "tcp",
             "-m", "owner",
-            "--uid-owner", "999",
+            "--uid-owner", &waagent_uid,
             "-j", "ACCEPT"
         ])
         .output();
@@ -149,10 +110,9 @@ async fn add_wireserver_iptables_rule() -> Result<()> {
     match output {
         Ok(result) => {
             if result.status.success() {
-                println!("Successfully added iptables rule for wireserver to security table OUTPUT chain at position 2");
-                
-                // Show the current security table OUTPUT rules for debugging
                 if cfg!(debug_assertions) {
+                    println!("Successfully added iptables rule for wireserver to security table OUTPUT chain at position 2");
+                    // Show the current security table OUTPUT rules for debugging
                     let show_rules = Command::new("sudo")
                         .args(&["iptables", "-t", "security", "-L", "OUTPUT", "-n", "--line-numbers"])
                         .output();
@@ -175,13 +135,6 @@ async fn add_wireserver_iptables_rule() -> Result<()> {
 }
 
 
-#[derive(Debug)]
-struct SystemInfo {
-    hostname: String,
-    cpu_usage: String,
-    memory_usage: String,
-    processor_time: String,
-}
 
 fn create_base_params(goal_state: &GoalState) -> Vec<Param> {
     vec![
@@ -463,7 +416,7 @@ async fn run_heartbeat_loop(client: &Client, goal_state: &GoalState) -> Result<(
         
         match event_name {
             "HeartBeat" => {
-                let sys_info = get_system_info();
+                let sys_info = SystemStats::current();
                 params.extend(vec![
                     Param {
                         name: "IsVersionFromRSM".to_string(),
@@ -479,15 +432,15 @@ async fn run_heartbeat_loop(client: &Client, goal_state: &GoalState) -> Result<(
                     },
                     Param {
                         name: "CPU".to_string(),
-                        value: sys_info.cpu_usage,
+                        value: sys_info.cpu_usage_str(),
                     },
                     Param {
                         name: "Memory".to_string(),
-                        value: sys_info.memory_usage,
+                        value: sys_info.memory_usage_str(),
                     },
                     Param {
                         name: "ProcessorTime".to_string(),
-                        value: sys_info.processor_time,
+                        value: sys_info.uptime_seconds_str(),
                     },
                 ]);
             },
@@ -654,8 +607,7 @@ async fn send_health_report(client: &Client, goal_state: &GoalState) -> Result<(
 }
 
 async fn send_status_report(client: &Client, goal_state: &GoalState) -> Result<()> {
-    let sys_info = get_system_info();
-    
+    let sys_info = SystemInfo::current();
     let status_content = serde_json::json!({
         "version": "1.1",
         "timestampUTC": get_rfc3339_timestamp(),
@@ -693,8 +645,8 @@ async fn send_status_report(client: &Client, goal_state: &GoalState) -> Result<(
         },
         "guestOSInfo": {
             "computerName": sys_info.hostname,
-            "osName": get_os_display_name(),
-            "osVersion": get_os_version(&sys_info),
+            "osName": sys_info.os_name,
+            "osVersion": sys_info.os_version,
             "version": AGENT_VERSION
         },
         "supportedFeatures": [

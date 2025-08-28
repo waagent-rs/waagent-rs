@@ -12,5 +12,4 @@ base64 = "0.22"
 reqwest = { version = "0.12", features = ["blocking", "json"] }
 tokio = { version = "1.0", features = ["full"] }
 chrono = { version = "0.4", features = ["serde"] }
-sys-info = "0.9.1"
-os_info = "3.12.0"
+waagent-core = { path = "../waagent-core" }

@@ -38,7 +38,6 @@ jobs:
 
       - name: Inspect MSI contents with dark.exe
         run: |
-          choco install wixtoolset -y
           dark.exe waagent-rs-poc-*.msi -x msi_contents
           echo "Listing extracted MSI files:"
           Get-ChildItem -Recurse msi_contents | ForEach-Object { Write-Host $_.FullName }

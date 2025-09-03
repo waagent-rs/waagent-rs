@@ -47,7 +47,7 @@ jobs:
       - name: Build MSI
         run: |
           candle.exe installer/waagent-rs.wxs
-          light.exe waagent-rs.wixobj -o waagent-rs.msi -b . -cab waagent-rs.cab 
+          light.exe waagent-rs.wixobj -o waagent-rs.msi
 
       - name: Inspect MSI contents with dark.exe
         run: |

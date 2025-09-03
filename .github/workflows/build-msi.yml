@@ -1,12 +1,10 @@
 name: Build and Package MSI
 
 on:
+  workflow_dispatch:
   push:
-    tags:
-      - 'v*.*.*'
-
-permissions:
-  contents: write
+    branches:
+      - main
 
 jobs:
   build-msi:
@@ -37,23 +35,14 @@ jobs:
           candle.exe installer/waagent-rs.wxs
           light.exe waagent-rs.wixobj -o waagent-rs.msi
 
+      - name: Inspect MSI contents with dark.exe
+        run: |
+          dark.exe waagent-rs.msi -x msi_contents
+          echo "Listing extracted MSI files:"
+          Get-ChildItem -Recurse msi_contents | ForEach-Object { Write-Host $_.FullName }
+
       - name: Upload MSI artifact
         uses: actions/upload-artifact@v4
         with:
           name: waagent-rs-msi
           path: waagent-rs.msi
-
-  release:
-    needs: build-msi
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ./artifacts
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ./artifacts/**/*.msi
-

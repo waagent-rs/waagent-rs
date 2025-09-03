@@ -1,3 +1,4 @@
+
 name: Build and Package MSI
 
 on:
@@ -21,37 +22,24 @@ jobs:
           toolchain: stable
           override: true
 
+      - name: Install cargo-wix
+        run: cargo install cargo-wix
+
       - name: Build release binary
         run: cargo build --release --manifest-path waagent-poc/Cargo.toml
 
-      - name: Inspect release directory
-        shell: pwsh
+      - name: Generate and build MSI with cargo wix
         run: |
-          Write-Host "Listing files in target\release:"
-          Get-ChildItem -Path target\release | ForEach-Object { Write-Host $_.FullName }
-          if (!(Test-Path target\release\waagent-rs-poc.exe)) {
-            Write-Error "waagent-rs-poc.exe not found in target\release. Aborting build."
-            exit 1
-          }
-          $file = Get-Item target\release\waagent-rs-poc.exe
-          Write-Host "waagent-rs-poc.exe size: $($file.Length) bytes"
-
-      - name: Download WiX Toolset
-        run: |
-          choco install wixtoolset -y
-
-      - name: Add WiX to PATH
-        run: |
-          echo "C:\Program Files (x86)\WiX Toolset v3.11\bin" | Out-File -Append -FilePath $env:GITHUB_PATH
-
-      - name: Build MSI
-        run: |
-          candle.exe installer/waagent-rs.wxs
-          light.exe waagent-rs.wixobj -o waagent-rs.msi
+          cd waagent-poc
+          cargo wix --nocapture
+          cd ..
+          # Move MSI to root for artifact upload
+          move waagent-poc\*.msi .
 
       - name: Inspect MSI contents with dark.exe
         run: |
-          dark.exe waagent-rs.msi -x msi_contents
+          choco install wixtoolset -y
+          dark.exe waagent-rs-poc-*.msi -x msi_contents
           echo "Listing extracted MSI files:"
           Get-ChildItem -Recurse msi_contents | ForEach-Object { Write-Host $_.FullName }
 
@@ -59,7 +47,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: waagent-rs-msi
-          path: waagent-rs.msi
+          path: waagent-rs-poc-*.msi
 
   release:
     needs: build-msi
@@ -74,4 +62,3 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ./artifacts/**/*.msi
-

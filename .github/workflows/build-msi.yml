@@ -1,0 +1,59 @@
+name: Build and Package MSI
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-msi:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Build release binary
+        run: cargo build --release --manifest-path waagent-poc/Cargo.toml
+
+      - name: Download WiX Toolset
+        run: |
+          choco install wixtoolset -y
+
+      - name: Add WiX to PATH
+        run: |
+          echo "C:\Program Files (x86)\WiX Toolset v3.11\bin" | Out-File -Append -FilePath $env:GITHUB_PATH
+
+      - name: Build MSI
+        run: |
+          candle.exe installer/waagent-rs.wxs
+          light.exe waagent-rs.wixobj -o waagent-rs.msi
+
+      - name: Upload MSI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: waagent-rs-msi
+          path: waagent-rs.msi
+
+  release:
+    needs: build-msi
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./artifacts/**/*.msi
+

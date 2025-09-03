@@ -31,7 +31,7 @@ jobs:
       - name: Generate and build MSI with cargo wix
         run: |
           cd waagent-poc
-          cargo wix --nocapture
+          cargo wix -p waagent-rs-poc --nocapture
           cd ..
           # Move MSI to root for artifact upload
           move waagent-poc\*.msi .

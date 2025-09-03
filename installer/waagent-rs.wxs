@@ -8,7 +8,7 @@
       <Directory Id="ProgramFilesFolder">
         <Directory Id="INSTALLFOLDER" Name="waagent-rs">
           <Component Id="MainExecutable" Guid="a7c2a2e2-b6e2-4e2a-9e2a-7c2a2e2b6e2a">
-            <File Source="target\release\waagent-rs-poc.exe" KeyPath="yes" />
+            <File Source="..\target\release\waagent-rs-poc.exe" KeyPath="yes" />
             <ServiceInstall
               Id="WaagentRsServiceInstall"
               Type="ownProcess"

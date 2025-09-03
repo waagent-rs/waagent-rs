@@ -24,6 +24,18 @@ jobs:
       - name: Build release binary
         run: cargo build --release --manifest-path waagent-poc/Cargo.toml
 
+      - name: Inspect release directory
+        shell: pwsh
+        run: |
+          Write-Host "Listing files in target\release:"
+          Get-ChildItem -Path target\release | ForEach-Object { Write-Host $_.FullName }
+          if (!(Test-Path target\release\waagent-rs-poc.exe)) {
+            Write-Error "waagent-rs-poc.exe not found in target\release. Aborting build."
+            exit 1
+          }
+          $file = Get-Item target\release\waagent-rs-poc.exe
+          Write-Host "waagent-rs-poc.exe size: $($file.Length) bytes"
+
       - name: Download WiX Toolset
         run: |
           choco install wixtoolset -y

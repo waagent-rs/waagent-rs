@@ -109,7 +109,7 @@ fn get_os_display_name() -> String {
     {
         let long_os_version = System::long_os_version().unwrap_or_else(|| "Unknown".to_string());
         if os_name.to_lowercase().contains("windows") {
-            return format!("Windows ({})", long_os_version);
+            return long_os_version;
         }
     }
 

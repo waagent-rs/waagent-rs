@@ -38,6 +38,7 @@ jobs:
 
       - name: Inspect MSI contents with dark.exe
         run: |
+          Get-ChildItem -Path . -Recurse -Filter *.msi
           $msiFiles = Get-ChildItem -Path . -Filter 'waagent-*.msi'
           foreach ($file in $msiFiles) {
               dark.exe $file.FullName -x msi_contents

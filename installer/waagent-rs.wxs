@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="waagent-rs" Language="1033" Version="0.1.0" Manufacturer="waagent-rs" UpgradeCode="e2e2b6e2-7c2a-4e2a-9e2a-2e2b6e2a7c2a">
+  <Product Id="*" Name="waagent-rs" Language="1033" Version="0.1.1" Manufacturer="waagent-rs" UpgradeCode="e2e2b6e2-7c2a-4e2a-9e2a-2e2b6e2a7c2a">
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
     <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
     <MediaTemplate />

@@ -33,23 +33,17 @@ jobs:
           cd waagent-poc
           cargo wix -p waagent-rs-poc --nocapture
           cd ..
-          # Move MSI to root for artifact upload
-          move waagent-poc\*.msi .
 
       - name: Inspect MSI contents with dark.exe
         run: |
           Get-ChildItem -Path . -Recurse -Filter *.msi
-          $msiFiles = Get-ChildItem -Path . -Filter 'waagent-*.msi'
-          foreach ($file in $msiFiles) {
-              dark.exe $file.FullName -x msi_contents
-              Get-ChildItem -Recurse msi_contents | ForEach-Object { Write-Host $_.FullName }
-          }
+          dark.exe waagent-rs/waagent-rs/target/wix/waagent-rs-poc-0.1.1-x86_64.msi -x msi_contents
 
       - name: Upload MSI artifact
         uses: actions/upload-artifact@v4
         with:
           name: waagent-rs-msi
-          path: waagent-poc/waagent-rs-poc-*.msi
+          path: waagent-rs/waagent-rs/target/wix/waagent-rs-poc-0.1.1-x86_64.msi
 
   release:
     needs: build-msi

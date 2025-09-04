@@ -778,7 +778,7 @@ async fn main() -> Result<()> {
     main_async().await
 }
 #[cfg(windows)]
-extern "system" fn service_main(_argc: u32, _argv: *mut *mut u16) {
+fn service_main(_arguments: Vec<std::ffi::OsString>) {
     // Register service control handler
     let status_handle = service_control_handler::register(SERVICE_NAME, move |control_event| {
         match control_event {
@@ -795,7 +795,7 @@ extern "system" fn service_main(_argc: u32, _argv: *mut *mut u16) {
         exit_code: ServiceExitCode::Win32(0),
         checkpoint: 0,
         wait_hint: std::time::Duration::default(),
-    process_id: Some(std::process::id()),
+        process_id: Some(std::process::id()),
     });
 
     // Run main logic
@@ -809,7 +809,7 @@ extern "system" fn service_main(_argc: u32, _argv: *mut *mut u16) {
         exit_code: ServiceExitCode::Win32(0),
         checkpoint: 0,
         wait_hint: std::time::Duration::default(),
-    process_id: Some(std::process::id()),
+        process_id: Some(std::process::id()),
     });
 }
 

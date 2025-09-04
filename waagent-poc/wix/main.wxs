@@ -62,14 +62,14 @@
         Id='*'
         Name='waagent-rs-poc'
         UpgradeCode='F7A9032E-8156-48A7-B976-09420D774EA2'
-        Manufacturer='Your Name'
+        Manufacturer='Waagent-rs'
         Language='1033'
         Codepage='1252'
         Version='$(var.Version)'>
 
         <Package Id='*'
             Keywords='Installer'
-            Manufacturer='Your Name'
+            Manufacturer='Waagent-rs'
             InstallerVersion='450'
             Languages='1033'
             Compressed='yes'
@@ -79,7 +79,7 @@
 
         <MajorUpgrade
             Schedule='afterInstallInitialize'
-            DowngradeErrorMessage='A newer version of [ProductName] is already installed. Setup will now exit.'/>
+            DowngradeErrorMessage='A newer version of waagent-rs is already installed. Setup will now exit.'/>
 
         <Media Id='1' Cabinet='media1.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1'/>
         <Property Id='DiskPrompt' Value='waagent-rs-poc Installation'/>
@@ -153,7 +153,7 @@
             <Feature
                 Id='Environment'
                 Title='PATH Environment Variable'
-                Description='Add the install location of the [ProductName] executable to the PATH system environment variable. This allows the [ProductName] executable to be called from any location.'
+                Description='Add the install location of waagent-rs executable to the PATH system environment variable. This allows the [ProductName] executable to be called from any location.'
                 Level='1'
                 Absent='allow'>
                 <ComponentRef Id='Path'/>

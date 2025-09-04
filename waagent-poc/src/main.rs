@@ -1,3 +1,7 @@
+#[cfg(windows)]
+use windows_service::define_windows_service;
+#[cfg(windows)]
+define_windows_service!(ffi_service_main, service_main);
 use base64::prelude::*;
 use chrono::Utc;
 use quick_xml::de::from_str;
@@ -761,7 +765,7 @@ async fn send_telemetry_event(client: &Client, telemetry_data: &TelemetryData, e
 #[tokio::main]
 async fn main() -> Result<()> {
     if std::env::args().any(|arg| arg == "--service") {
-        service_dispatcher::start(SERVICE_NAME, service_main as extern "system" fn(u32, *mut *mut u16)).unwrap();
+    service_dispatcher::start(SERVICE_NAME, ffi_service_main).unwrap();
         Ok(())
     } else {
         main_async().await

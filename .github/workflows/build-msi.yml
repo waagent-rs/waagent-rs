@@ -48,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: waagent-rs-msi
-          path: waagent-rs-poc-*.msi
+          path: waagent-poc/waagent-rs-poc-*.msi
 
   release:
     needs: build-msi

@@ -37,13 +37,13 @@ jobs:
       - name: Inspect MSI contents with dark.exe
         run: |
           Get-ChildItem -Path . -Recurse -Filter *.msi
-          dark.exe waagent-rs/waagent-rs/target/wix/waagent-rs-poc-0.1.1-x86_64.msi -x msi_contents
+          dark.exe target/wix/waagent-rs-poc-0.1.1-x86_64.msi -x msi_contents
 
       - name: Upload MSI artifact
         uses: actions/upload-artifact@v4
         with:
           name: waagent-rs-msi
-          path: waagent-rs/waagent-rs/target/wix/waagent-rs-poc-0.1.1-x86_64.msi
+          path: target/wix/waagent-rs-poc-0.1.1-x86_64.msi
 
   release:
     needs: build-msi

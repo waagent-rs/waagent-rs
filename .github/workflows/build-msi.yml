@@ -38,9 +38,11 @@ jobs:
 
       - name: Inspect MSI contents with dark.exe
         run: |
-          dark.exe waagent-\*.msi -x msi_contents
-          echo "Listing extracted MSI files:"
-          Get-ChildItem -Recurse msi_contents | ForEach-Object { Write-Host $_.FullName }
+          $msiFiles = Get-ChildItem -Path . -Filter 'waagent-*.msi'
+          foreach ($file in $msiFiles) {
+              dark.exe $file.FullName -x msi_contents
+              Get-ChildItem -Recurse msi_contents | ForEach-Object { Write-Host $_.FullName }
+          }
 
       - name: Upload MSI artifact
         uses: actions/upload-artifact@v4

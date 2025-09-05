@@ -17,15 +17,18 @@ jobs:
         distro: [oraclelinux:8, oraclelinux:9, registry.access.redhat.com/ubi8, suse/sles15sp4, mcr.microsoft.com/azurelinux/base/core:3.0]
 
     steps:
-      - name: Install build dependencies
-        run: |
-          export DEPS="rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel"
-          if $(which tdnf); then export TOOL=tdnf; elif $(which dnf); then export TOOL=dnf; elif $(which zypper); then export TOOL=zypper; fi
-          $TOOL -y update
-          $TOOL -y install $DEPS
-
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          docker run --rpm --platform linux/${{ matrix.arch }} \
+            -v ${{ github.workspace }}:/src -w /src ${{ matrix.distro }} \
+            bash -c " 
+              if $(which tdnf); then export TOOL=tdnf; elif $(which dnf); then export TOOL=dnf; elif $(which zypper); then export TOOL=zypper; fi
+              $TOOL -y update
+              $TOOL -y install rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel
+            "
 
       - name: Prepare RPM build environment
         run: |

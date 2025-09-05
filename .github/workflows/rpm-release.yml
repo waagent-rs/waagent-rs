@@ -28,8 +28,6 @@ jobs:
     steps:
       - name: Install build dependencies
         run: |
-          # Import Azure Linux GPG key for package verification
-          rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-azurelinux
           GNUPGHOME=/root/.gnupg tdnf -y update
           GNUPGHOME=/root/.gnupg tdnf -y install rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel
 

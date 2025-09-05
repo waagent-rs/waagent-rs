@@ -103,20 +103,29 @@ fn get_memory_usage_percent_with(system: &System) -> f64 {
 
 // Get OS display name
 fn get_os_display_name() -> String {
-    // Get OS name using the static method - no System instance needed
-    let os_name = System::name().unwrap_or_else(|| "Linux".to_string()).to_lowercase();
+    let os_name = System::name().unwrap_or_else(|| "Unknown".to_string());
 
-    // Try to match known distributions
-    if os_name.contains("ubuntu") || os_name.contains("debian") || os_name.contains("centos") || os_name.contains("fedora") {
-        os_name
-    } else if os_name.contains("azure linux") {
-        "Azurelinux".to_lowercase().to_string()
-    } else if os_name.contains("rhel") || os_name.to_lowercase().contains("red hat") {
-        "RHEL".to_lowercase().to_string()
-    } else if os_name.contains("opensuse") || os_name.contains("suse") {
+    #[cfg(windows)]
+    {
+        let long_os_version = System::long_os_version().unwrap_or_else(|| "Unknown".to_string());
+        if os_name.to_lowercase().contains("windows") {
+            return long_os_version;
+        }
+    }
+
+    let os_version = System::os_version().unwrap_or_else(|| "Unknown".to_string());
+    if os_name.to_lowercase().contains("ubuntu") || os_name.to_lowercase().contains("debian") || os_name.to_lowercase().contains("centos") || os_name.to_lowercase().contains("fedora") {
+        os_name.to_lowercase()
+    } else if os_name.to_lowercase().contains("azure linux") {
+        "azurelinux".to_string()
+    } else if os_name.to_lowercase().contains("rhel") || os_name.to_lowercase().contains("red hat") {
+        "rhel".to_string()
+    } else if os_name.to_lowercase().contains("opensuse") || os_name.to_lowercase().contains("suse") {
         "sles".to_string()
+    } else if os_name.to_lowercase().contains("linux") {
+        "linux".to_string()
     } else {
-        "Linux".to_lowercase().to_string()
+        format!("Unknown ({})", os_version)
     }
 }
 

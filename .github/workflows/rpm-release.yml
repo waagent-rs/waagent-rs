@@ -20,9 +20,7 @@ jobs:
       - name: Install build dependencies
         run: |
           export DEPS="rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel"
-          if [ -x $(which tdnf) ]; then export TOOL=tdnf; fi
-          if [ -x $(which dnf) ]; then export TOOL=dnf; fi
-          if [ -x $(which zypper) ]; then export TOOL=zypper; fi
+          if $(which tdnf); then export TOOL=tdnf; elif $(which dnf); then export TOOL=dnf; elif $(which zypper); then export TOOL=zypper; fi
           $TOOL -y update
           $TOOL -y install $DEPS
 

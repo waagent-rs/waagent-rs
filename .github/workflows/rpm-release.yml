@@ -24,9 +24,12 @@ jobs:
           docker run --rm  \
             -v ${{ github.workspace }}:/src -w /src ${{ matrix.distro }} \
             bash -c " 
-              if [ -x /usr/bin/tdnf ]; then export TOOL=tdnf; elif [ -x /usr/bin/dnf ]; then export TOOL=dnf; elif [ -x /usr/bin/zypper ]; then export TOOL=zypper; fi
-              $TOOL -y update
-              $TOOL -y install rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel
+              if [ -x /usr/bin/tdnf ]; then export TOOL=tdnf
+              elif [ -x /usr/bin/dnf ]; then export TOOL=dnf
+              elif [ -x /usr/bin/zypper ]; then export TOOL=zypper;
+              else echo 'No tool found'; exit 0; fi
+              \$TOOL -y update
+              \$TOOL -y install rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel
             "
 
       - name: Prepare RPM build environment

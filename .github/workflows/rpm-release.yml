@@ -13,7 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [x86_64, aarch64]
+        #arch: [x86_64, aarch64]
+        arch: x86_64
         distro: [oraclelinux:8, oraclelinux:9, registry.access.redhat.com/ubi8, mcr.microsoft.com/azurelinux/base/core:3.0]
 
     steps:

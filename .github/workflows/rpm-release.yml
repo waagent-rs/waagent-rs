@@ -33,17 +33,11 @@ jobs:
               fi
               \$TOOL -y update
               \$TOOL -y install rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel
+              rpmdev-setuptree
+              cp rpm/*.spec ~/rpmbuild/SPECS/
+              spectool -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
+              rpmbuild -ba ~/rpmbuild/SPECS/*.spec
             "
-
-      - name: Prepare RPM build environment
-        run: |
-          rpmdev-setuptree
-          cp rpm/*.spec ~/rpmbuild/SPECS/
-          spectool -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
-
-      - name: Build RPM
-        run: |
-          rpmbuild -ba ~/rpmbuild/SPECS/*.spec --target ${{ matrix.rpm_arch }}
 
       - name: Find built RPM
         id: find_rpm

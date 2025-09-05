@@ -1,7 +1,3 @@
-#[cfg(windows)]
-use windows_service::define_windows_service;
-#[cfg(windows)]
-define_windows_service!(ffi_service_main, service_main);
 use base64::prelude::*;
 use chrono::Utc;
 use quick_xml::de::from_str;
@@ -765,7 +761,7 @@ async fn send_telemetry_event(client: &Client, telemetry_data: &TelemetryData, e
 #[tokio::main]
 async fn main() -> Result<()> {
     if std::env::args().any(|arg| arg == "--service") {
-    service_dispatcher::start(SERVICE_NAME, ffi_service_main).unwrap();
+        service_dispatcher::start(SERVICE_NAME, service_main as extern "system" fn(u32, *mut *mut u16)).unwrap();
         Ok(())
     } else {
         main_async().await
@@ -778,7 +774,7 @@ async fn main() -> Result<()> {
     main_async().await
 }
 #[cfg(windows)]
-fn service_main(_arguments: Vec<std::ffi::OsString>) {
+extern "system" fn service_main(_argc: u32, _argv: *mut *mut u16) {
     // Register service control handler
     let status_handle = service_control_handler::register(SERVICE_NAME, move |control_event| {
         match control_event {
@@ -795,7 +791,7 @@ fn service_main(_arguments: Vec<std::ffi::OsString>) {
         exit_code: ServiceExitCode::Win32(0),
         checkpoint: 0,
         wait_hint: std::time::Duration::default(),
-        process_id: Some(std::process::id()),
+    process_id: Some(std::process::id()),
     });
 
     // Run main logic
@@ -809,7 +805,7 @@ fn service_main(_arguments: Vec<std::ffi::OsString>) {
         exit_code: ServiceExitCode::Win32(0),
         checkpoint: 0,
         wait_hint: std::time::Duration::default(),
-        process_id: Some(std::process::id()),
+    process_id: Some(std::process::id()),
     });
 }
 

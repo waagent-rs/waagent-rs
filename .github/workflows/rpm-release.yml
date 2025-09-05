@@ -13,8 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        #arch: [x86_64, aarch64]
-        arch: x86_64
         distro: [oraclelinux:8, oraclelinux:9, registry.access.redhat.com/ubi8, mcr.microsoft.com/azurelinux/base/core:3.0]
 
     steps:
@@ -23,7 +21,7 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          docker run --rm --platform linux/${{ matrix.arch }} \
+          docker run --rm  \
             -v ${{ github.workspace }}:/src -w /src ${{ matrix.distro }} \
             bash -c " 
               if which tdnf; then export TOOL=tdnf; elif which dnf; then export TOOL=dnf; elif which zypper; then export TOOL=zypper; fi

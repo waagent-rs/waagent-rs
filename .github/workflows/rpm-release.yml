@@ -30,7 +30,7 @@ jobs:
               else echo 'No tool found'; exit 0; fi
               if grep -q ubi /etc/os-release; then
                  dnf config-manager --set-enabled codeready-builder-for-rhel-8-x86_64-rpms
-              done
+              fi
               \$TOOL -y update
               \$TOOL -y install rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel
             "

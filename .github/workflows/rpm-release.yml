@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         arch: [x86_64, aarch64]
-        distro: [oraclelinux:8, oraclelinux:9, registry.access.redhat.com/ubi8, suse/sles15sp4, mcr.microsoft.com/azurelinux/base/core:3.0]
+        distro: [oraclelinux:8, oraclelinux:9, registry.access.redhat.com/ubi8, mcr.microsoft.com/azurelinux/base/core:3.0]
 
     steps:
       - name: Checkout repository

@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  build-rpm:
+  build-rpm-azl:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -25,11 +25,22 @@ jobs:
     container:
       image: ${{ matrix.container }}
 
+  build-rpm-multi:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+        distro: [oraclelinux:8, oraclelinux:9, registry.access.redhat.com/ubi8, suse/sles15sp4, mcr.microsoft.com/azurelinux/base/core:3.0]
+
     steps:
       - name: Install build dependencies
         run: |
-          GNUPGHOME=/root/.gnupg tdnf -y update
-          GNUPGHOME=/root/.gnupg tdnf -y install rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel
+          export DEPS="rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel"
+          if [ -x $(which tdnf) ]; then export TOOL=tdnf; fi
+          if [ -x $(which dnf) ]; then export TOOL=dnf; fi
+          if [ -x $(which zypper) ]; then export TOOL=zypper; fi
+          $TOOL -y update
+          $TOOL -y install $DEPS
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -57,7 +68,7 @@ jobs:
           path: ${{ steps.find_rpm.outputs.rpm_path }}
 
   release:
-    needs: build-rpm
+    needs: build-rpm-multi
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts

@@ -9,22 +9,6 @@ permissions:
   contents: write
 
 jobs:
-  build-rpm-azl:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch: [x86_64, aarch64]
-        include:
-          - arch: x86_64
-            container: mcr.microsoft.com/azurelinux/base/core:3.0
-            rpm_arch: x86_64
-          - arch: aarch64
-            container: mcr.microsoft.com/azurelinux/base/core:3.0
-            rpm_arch: aarch64
-
-    container:
-      image: ${{ matrix.container }}
-
   build-rpm-multi:
     runs-on: ubuntu-latest
     strategy:

@@ -54,7 +54,7 @@ jobs:
         run: |
           if [ -x /usr/bin/tdnf ]; then export TOOL="tdnf -y"; export GNUPGHOME=/root/.gnupg
           elif [ -x /usr/bin/dnf ]; then export TOOL="dnf -y"
-          elif [ -x /usr/bin/zypper ]; then export TOOL="zypper --non-interactive"; $TOOL install rpm-build rpm-build-tools tar gzip
+          elif [ -x /usr/bin/zypper ]; then export TOOL="zypper --non-interactive"; $TOOL install rpm-build wget tar gzip; wget https://raw.githubusercontent.com/rpm-software-management/rpm/master/scripts/spectool ; chmod +x spectool ; mv spectool /usr/bin/
           else echo 'No tool found'; exit 0; fi
           echo "Using as package tool $TOOL"
           $TOOL update

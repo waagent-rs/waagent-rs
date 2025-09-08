@@ -52,13 +52,13 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          if [ -x /usr/bin/tdnf ]; then export TOOL="tdnf -y"; export GNUPGHOME=/root/.gnupg
-          elif [ -x /usr/bin/dnf ]; then export TOOL="dnf -y"
+          if [ -x /usr/bin/tdnf ]; then export TOOL=tdnf; export GNUPGHOME=/root/.gnupg
+          elif [ -x /usr/bin/dnf ]; then export TOOL=dnf
           elif [ -x /usr/bin/zypper ]; then export TOOL=zypper;
           else echo 'No tool found'; exit 0; fi
           echo "Using as package tool $TOOL"
           $TOOL update
-          $TOOL install rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel
+          $TOOL -y install rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel
 
       - name: Checkout repository
         uses: actions/checkout@v4

@@ -39,14 +39,10 @@ jobs:
               rpmbuild -ba --nodebuginfo ~/rpmbuild/SPECS/*.spec
               find ~/rpmbuild/RPMS -name '*.rpm' -exec cp -v {} /src/ \;
             "
-
-      - name: Set RPM path output
-        id: find_rpm
-        run: |
-              ls -lh /src/
-              ls -lh /
-              RPM_PATH=$(find /src -name "*.rpm" | grep -v debuginfo | head -n 1)
-              echo "rpm_path=$RPM_PATH" | tee -a $GITHUB_OUTPUT
+          ls -lh /src/
+          ls -lh /
+          RPM_PATH=$(find /src -name "*.rpm" | grep -v debuginfo | head -n 1)
+          echo "rpm_path=$RPM_PATH" | tee -a $GITHUB_OUTPUT
 
       - name: Upload RPM artifact
         uses: actions/upload-artifact@v4

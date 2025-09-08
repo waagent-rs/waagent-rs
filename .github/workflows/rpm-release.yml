@@ -9,40 +9,54 @@ permissions:
   contents: write
 
 jobs:
-  build-rpm-multi:
+  build-rpm:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        distro: [oraclelinux:8, oraclelinux:9, mcr.microsoft.com/azurelinux/base/core:3.0]
+        arch: [x86_64, aarch64]
+        include:
+          - arch: x86_64
+            container: mcr.microsoft.com/azurelinux/base/core:3.0
+            rpm_arch: x86_64
+          - arch: aarch64
+            container: mcr.microsoft.com/azurelinux/base/core:3.0
+            rpm_arch: aarch64
+          - arch: x86_64
+            container: oraclelinux:9
+            rpm_arch: x86_64
+
+    container:
+      image: ${{ matrix.container }}
 
     steps:
+      - name: Install build dependencies
+        run: |
+          if [ -x /usr/bin/tdnf ]; then export TOOL=tdnf
+          elif [ -x /usr/bin/dnf ]; then export TOOL=dnf
+          elif [ -x /usr/bin/zypper ]; then export TOOL=zypper;
+          else echo 'No tool found'; exit 0; fi
+          echo "Using as package tool $TOOL"
+          $TOOL -y update
+          $TOOL -y install rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build rpm
+      - name: Prepare RPM build environment
         run: |
-          docker run --rm  \
-            -v ${{ github.workspace }}:/src -w /src ${{ matrix.distro }} \
-            bash -c " 
-              if [ -x /usr/bin/tdnf ]; then export TOOL=tdnf
-              elif [ -x /usr/bin/dnf ]; then export TOOL=dnf
-              elif [ -x /usr/bin/zypper ]; then export TOOL=zypper;
-              else echo 'No tool found'; exit 0; fi
-              if grep -q ubi /etc/os-release; then
-                 dnf config-manager --set-enabled codeready-builder-for-rhel-8-x86_64-rpms
-              fi
-              \$TOOL -y update
-              \$TOOL -y install rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel
-              rpmdev-setuptree
-              cp rpm/*.spec ~/rpmbuild/SPECS/
-              spectool -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
-              rpmbuild -ba --nodebuginfo ~/rpmbuild/SPECS/*.spec
-              find ~/rpmbuild/RPMS -name '*.rpm' -exec cp -v {} /src/ \;
-            "
-          ls -lh /src/
-          ls -lh /
-          RPM_PATH=$(find /src -name "*.rpm" | grep -v debuginfo | head -n 1)
-          echo "rpm_path=$RPM_PATH" | tee -a $GITHUB_OUTPUT
+          rpmdev-setuptree
+          cp rpm/*.spec ~/rpmbuild/SPECS/
+          spectool -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
+
+      - name: Build RPM
+        run: |
+          rpmbuild -ba ~/rpmbuild/SPECS/*.spec --target ${{ matrix.rpm_arch }}
+
+      - name: Find built RPM
+        id: find_rpm
+        run: |
+          RPM_PATH=$(find ~/rpmbuild/RPMS -name "*.rpm" | grep -v debuginfo | head -n 1)
+          echo "rpm_path=$RPM_PATH" >> $GITHUB_OUTPUT
 
       - name: Upload RPM artifact
         uses: actions/upload-artifact@v4
@@ -51,7 +65,7 @@ jobs:
           path: ${{ steps.find_rpm.outputs.rpm_path }}
 
   release:
-    needs: build-rpm-multi
+    needs: build-rpm
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts

@@ -36,14 +36,14 @@ jobs:
               rpmdev-setuptree
               cp rpm/*.spec ~/rpmbuild/SPECS/
               spectool -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
-              rpmbuild -ba ~/rpmbuild/SPECS/*.spec
+              rpmbuild -ba --define "debug_package %{nil}" ~/rpmbuild/SPECS/*.spec
               RPM_PATH=\$(find ~/rpmbuild/RPMS -name '*.rpm' | grep -v debuginfo | head -n 1)
-              echo \$RPM_PATH > /src/rpm_path.txt
+              echo \$RPM_PATH | tee /src/rpm_path.txt
             "
 
       - name: Set RPM path output
         id: find_rpm
-        run: echo "rpm_path=$(cat rpm_path.txt)" >> $GITHUB_OUTPUT
+        run: echo "rpm_path=$(cat rpm_path.txt)" | tee -a $GITHUB_OUTPUT
 
       - name: Upload RPM artifact
         uses: actions/upload-artifact@v4

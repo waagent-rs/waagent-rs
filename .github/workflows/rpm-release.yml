@@ -37,8 +37,8 @@ jobs:
               cp rpm/*.spec ~/rpmbuild/SPECS/
               spectool -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
               rpmbuild -ba --nodebuginfo ~/rpmbuild/SPECS/*.spec
-              chmod -R a+rX /src
-              RPM_PATH=\$(find ~/rpmbuild/RPMS -name '*.rpm' | grep -v debuginfo | head -n 1)
+              find ~/rpmbuild/RPMS -name '*.rpm' -exec cp -v {} /src/ \;
+              RPM_PATH=\$(find /src -name '*.rpm' | grep -v debuginfo | head -n 1)
               echo \$RPM_PATH | tee /src/rpm_path.txt
             "
 

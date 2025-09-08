@@ -13,22 +13,27 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [x86_64, aarch64]
         include:
           - arch: x86_64
             container: mcr.microsoft.com/azurelinux/base/core:3.0
+            distroname: azl
             rpm_arch: x86_64
           - arch: aarch64
             container: mcr.microsoft.com/azurelinux/base/core:3.0
+            distroname: azl
             rpm_arch: aarch64
           - arch: x86_64
             container: oraclelinux:9
+            distroname: oracle9
             rpm_arch: x86_64
 
     container:
       image: ${{ matrix.container }}
 
     steps:
+      - name: Print matrix info
+        run: echo "Building for ${{ matrix.arch }} on ${{ matrix.distroname }}"
+
       - name: Install build dependencies
         run: |
           if [ -x /usr/bin/tdnf ]; then export TOOL=tdnf; export GNUPGHOME=/root/.gnupg
@@ -61,7 +66,7 @@ jobs:
       - name: Upload RPM artifact
         uses: actions/upload-artifact@v4
         with:
-          name: waagent-rs-${{ matrix.arch }}
+          name: waagent-rs-${{ matrix.arch }}-${{ matrix.distroname }}
           path: ${{ steps.find_rpm.outputs.rpm_path }}
 
   release:

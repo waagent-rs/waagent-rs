@@ -50,7 +50,7 @@ jobs:
 
       - name: Build RPM
         run: |
-          rpmbuild -ba ~/rpmbuild/SPECS/*.spec --target ${{ matrix.rpm_arch }}
+          rpmbuild -ba --nodebuginfo ~/rpmbuild/SPECS/*.spec --target ${{ matrix.rpm_arch }}
 
       - name: Find built RPM
         id: find_rpm

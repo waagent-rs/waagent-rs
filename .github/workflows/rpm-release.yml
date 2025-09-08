@@ -26,6 +26,26 @@ jobs:
             container: oraclelinux:9
             distroname: oracle9
             rpm_arch: x86_64
+          - arch: x86_64
+            container: oraclelinux:8
+            distroname: oracle8
+            rpm_arch: x86_64
+          - arch: x86_64
+            container: rockylinux:8
+            distroname: rocky8
+            rpm_arch: x86_64
+          - arch: x86_64
+            container: rockylinux:9
+            distroname: rocky9
+            rpm_arch: x86_64
+          - arch: x86_64
+            container: almalinux:8
+            distroname: alma8
+            rpm_arch: x86_64
+          - arch: x86_64
+            container: almalinux:9
+            distroname: alma9
+            rpm_arch: x86_64
 
     container:
       image: ${{ matrix.container }}

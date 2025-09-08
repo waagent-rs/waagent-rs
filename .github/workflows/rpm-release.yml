@@ -26,6 +26,10 @@ jobs:
             container: oraclelinux:9
             distroname: oracle9
             rpm_arch: x86_64
+          - arch: aarch64
+            container: oraclelinux:9
+            distroname: oracle9
+            rpm_arch: aarch64
           - arch: x86_64
             container: oraclelinux:8
             distroname: oracle8
@@ -37,10 +41,6 @@ jobs:
           - arch: x86_64
             container: almalinux:9
             distroname: alma9
-            rpm_arch: x86_64
-          - arch: x86_64
-            container: opensuse/leap:15.6
-            distroname: suse15
             rpm_arch: x86_64
 
     container:
@@ -54,7 +54,7 @@ jobs:
         run: |
           if [ -x /usr/bin/tdnf ]; then export TOOL="tdnf -y"; export GNUPGHOME=/root/.gnupg
           elif [ -x /usr/bin/dnf ]; then export TOOL="dnf -y"
-          elif [ -x /usr/bin/zypper ]; then export TOOL="zypper --non-interactive"; $TOOL install rpm-build wget tar gzip; wget https://raw.githubusercontent.com/rpm-software-management/rpm/master/scripts/spectool ; chmod +x spectool ; mv spectool /usr/bin/
+          elif [ -x /usr/bin/zypper ]; then export TOOL="zypper --non-interactive"; $TOOL install rpm-build wget tar gzip; wget https://raw.githubusercontent.com/rpm-software-management/rpm/master/scripts/spectool
           else echo 'No tool found'; exit 0; fi
           echo "Using as package tool $TOOL"
           $TOOL update

@@ -3,7 +3,7 @@
 #
 
 Name:           waagent-rs
-Version:        0.1.0
+Version:        0.1.1
 Release:        1%{?dist}
 Summary:        Azure Agent, in Rust
 
@@ -45,6 +45,9 @@ getent passwd waagent-rs >/dev/null || useradd -r -d /nonexistent -s /usr/sbin/n
 %license LICENSE
 %doc README.md
 
+%changelog
+* Tue Sep  8 2025 Álvaro Figueroa (alvaro.figueroa@microsoft.com) - 0.1.1
+- Adding multiarch rpm, os detection, windows port
 %changelog
 * Tue Aug 19 2025 Francisco Ortiz (francisco.ortiz@microsoft.com) - 0.1.0
 - Initial package

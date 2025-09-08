@@ -31,20 +31,16 @@ jobs:
             distroname: oracle8
             rpm_arch: x86_64
           - arch: x86_64
-            container: rockylinux:8
-            distroname: rocky8
-            rpm_arch: x86_64
-          - arch: x86_64
-            container: rockylinux:9
-            distroname: rocky9
-            rpm_arch: x86_64
-          - arch: x86_64
             container: almalinux:8
             distroname: alma8
             rpm_arch: x86_64
           - arch: x86_64
             container: almalinux:9
             distroname: alma9
+            rpm_arch: x86_64
+          - arch: x86_64
+            container: opensuse/leap:15.6
+            distroname: suse15
             rpm_arch: x86_64
 
     container:

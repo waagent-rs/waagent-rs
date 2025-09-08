@@ -58,7 +58,7 @@ jobs:
           else echo 'No tool found'; exit 0; fi
           echo "Using as package tool $TOOL"
           $TOOL update
-          $TOOL install rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel tar gzip
+          $TOOL install rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel tar gzip rpm-build
 
       - name: Checkout repository
         uses: actions/checkout@v4

@@ -22,18 +22,10 @@ jobs:
             container: mcr.microsoft.com/azurelinux/base/core:3.0
             distroname: azl
             rpm_arch: aarch64
-          - arch: x86_64
-            container: oraclelinux:9
-            distroname: oracle9
-            rpm_arch: x86_64
           - arch: aarch64
-            container: oraclelinux:9
-            distroname: oracle9
+            container: almalinux:8
+            distroname: alma8
             rpm_arch: aarch64
-          - arch: x86_64
-            container: oraclelinux:8
-            distroname: oracle8
-            rpm_arch: x86_64
           - arch: x86_64
             container: almalinux:8
             distroname: alma8
@@ -42,6 +34,10 @@ jobs:
             container: almalinux:9
             distroname: alma9
             rpm_arch: x86_64
+          - arch: aarch64
+            container: almalinux:9
+            distroname: alma9
+            rpm_arch: aarch64
 
     container:
       image: ${{ matrix.container }}

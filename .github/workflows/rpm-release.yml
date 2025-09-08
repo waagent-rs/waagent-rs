@@ -53,7 +53,7 @@ jobs:
       - name: Install build dependencies
         run: |
           if [ -x /usr/bin/tdnf ]; then export TOOL="tdnf -y"; export GNUPGHOME=/root/.gnupg
-          elif [ -x /usr/bin/dnf ]; then export TOOL="dnf -y
+          elif [ -x /usr/bin/dnf ]; then export TOOL="dnf -y"
           elif [ -x /usr/bin/zypper ]; then export TOOL="zypper --non-interactive";
           else echo 'No tool found'; exit 0; fi
           echo "Using as package tool $TOOL"

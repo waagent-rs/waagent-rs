@@ -37,9 +37,13 @@ jobs:
               cp rpm/*.spec ~/rpmbuild/SPECS/
               spectool -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
               rpmbuild -ba ~/rpmbuild/SPECS/*.spec
-              RPM_PATH=$(find ~/rpmbuild/RPMS -name "*.rpm" | grep -v debuginfo | head -n 1)
-              echo "rpm_path=$RPM_PATH" >> $GITHUB_OUTPUT
+              RPM_PATH=\$(find ~/rpmbuild/RPMS -name '*.rpm' | grep -v debuginfo | head -n 1)
+              echo \$RPM_PATH > /src/rpm_path.txt
             "
+
+      - name: Set RPM path output
+        id: find_rpm
+        run: echo "rpm_path=$(cat rpm_path.txt)" >> $GITHUB_OUTPUT
 
       - name: Upload RPM artifact
         uses: actions/upload-artifact@v4

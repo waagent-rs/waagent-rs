@@ -29,8 +29,7 @@ jobs:
       - name: Add target and deps
         run: |
           sudo apt update
-          sudo apt upgrade -y
-          sudo apt install libssl-dev
+          sudo apt install libssl-dev gcc-aarch64-linux-gnu libssl-dev:arm64
           rustup target add ${{ matrix.target }}
 
       - name: Install cargo-deb

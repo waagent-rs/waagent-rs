@@ -29,7 +29,7 @@ jobs:
       - name: Add target and deps
         run: |
           sudo dpkg --add-architecture arm64
-          sed '/^URIs: mirror\+file:\/\/\/etc\/apt\/mirrors.txt$/s|^URIs:.*|URIs: http://ports.ubuntu.com/ubuntu|' /etc/apt/sources.list.d/ubuntu.sources
+          sed '/^URIs: mirror\+file:\/\/\/etc\/apt\/mirrors.txt$/s|^URIs:.*|URIs: http://ports.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
           cat /etc/apt/sources.list.d/ubuntu.sources
           sudo apt update
           sudo apt install libssl-dev gcc-aarch64-linux-gnu libssl-dev:arm64

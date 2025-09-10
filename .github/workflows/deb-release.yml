@@ -30,7 +30,8 @@ jobs:
         run: |
           sudo apt update
           sudo apt upgrade -y
-          sudo apt install libssl-dev rustup target add ${{ matrix.target }}
+          sudo apt install libssl-dev
+          rustup target add ${{ matrix.target }}
 
       - name: Install cargo-deb
         run: cargo install cargo-deb

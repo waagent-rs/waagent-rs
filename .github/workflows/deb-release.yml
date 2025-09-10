@@ -29,7 +29,7 @@ jobs:
       - name: Add target and deps
         run: |
           sudo dpkg --add-architecture arm64
-          cat /etc/apt/sources.list.d/ubuntu-sources
+          cat /etc/apt/sources.list.d/ubuntu.sources
           ls /etc/apt/sources.list.d/
           sudo sed -i '/arm64/ s|http://\(security\|archive\).ubuntu.com/ubuntu|http://ports.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
           cat /etc/apt/sources.list.d/ubuntu-sources

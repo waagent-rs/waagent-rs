@@ -26,8 +26,11 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Add target
-        run: rustup target add ${{ matrix.target }}
+      - name: Add target and deps
+        run: |
+          sudo apt update
+          sudo apt upgrade -y
+          sudo apt install libssl-dev rustup target add ${{ matrix.target }}
 
       - name: Install cargo-deb
         run: cargo install cargo-deb

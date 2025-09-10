@@ -28,6 +28,7 @@ jobs:
 
       - name: Add target and deps
         run: |
+          sudo dpkg --add-architecture arm64
           sudo apt update
           sudo apt install libssl-dev gcc-aarch64-linux-gnu libssl-dev:arm64
           rustup target add ${{ matrix.target }}

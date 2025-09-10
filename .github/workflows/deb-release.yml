@@ -29,9 +29,8 @@ jobs:
       - name: Add target and deps
         run: |
           sudo dpkg --add-architecture arm64
-          cat /etc/apt/sources.list
           ls /etc/apt/sources.list.d/
-          sudo sed -i '/arm64/ s|http://\(security\|archive\).ubuntu.com/ubuntu|http://ports.ubuntu.com/ubuntu|g' /etc/apt/sources.list
+          sudo sed -i '/arm64/ s|http://\(security\|archive\).ubuntu.com/ubuntu|http://ports.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
           sudo apt update
           sudo apt install libssl-dev gcc-aarch64-linux-gnu libssl-dev:arm64
           rustup target add ${{ matrix.target }}

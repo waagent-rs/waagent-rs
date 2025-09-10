@@ -25,10 +25,11 @@ jobs:
         with:
           toolchain: stable
           override: true
+
       - name: Replace sources.list for multi-arch
         run: |
           sudo dpkg --add-architecture arm64
-          sudo tee /etc/apt/sources.d/sources.list > /dev/null <<EOF
+          sudo tee /etc/apt/sources.d/ubuntu.sources > /dev/null <<EOF
           deb [arch=amd64] http://archive.ubuntu.com/ubuntu noble main restricted universe multiverse
           deb [arch=amd64] http://archive.ubuntu.com/ubuntu noble-updates main restricted universe multiverse
           deb [arch=amd64] http://archive.ubuntu.com/ubuntu noble-security main restricted universe multiverse

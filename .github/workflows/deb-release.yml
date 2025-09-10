@@ -1,0 +1,58 @@
+name: Build Debian Packages
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-deb:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Add target
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Install cargo-deb
+        run: cargo install cargo-deb
+
+      - name: Build Debian package
+        run: |
+          cargo build --release --target ${{ matrix.target }}
+          cargo deb --target ${{ matrix.target }}
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: deb-${{ matrix.target }}
+          path: target/${{ matrix.target }}/debian/*.deb
+
+  release:
+    needs: build-deb
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./artifacts/**/*.deb

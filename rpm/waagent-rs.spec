@@ -3,7 +3,7 @@
 #
 
 Name:           waagent-rs
-Version:        0.1.0
+Version:        %{version}
 Release:        1%{?dist}
 Summary:        Azure Agent, in Rust
 

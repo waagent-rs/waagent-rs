@@ -88,6 +88,8 @@ jobs:
           echo $RUSTFLAGS
           export CFLAGS="$(echo ${CFLAGS} | sed 's/-mbranch-protection=standard//g')"
           export RUSTFLAGS="$(echo ${RUSTFLAGS} | sed 's/-mbranch-protection=standard//g')"
+          echo "CFLAGS=$CFLAGS" >> $GITHUB_ENV
+          echo "RUSTFLAGS=$RUSTFLAGS" >> $GITHUB_ENV
           echo $CFLAGS
           echo $RUSTFLAGS
 

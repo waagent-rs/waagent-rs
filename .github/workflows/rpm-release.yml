@@ -72,16 +72,18 @@ jobs:
           TAG="${GITHUB_REF#refs/tags/}"
           VERSION=$(echo "$TAG" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+).*$/\1/')
           echo "VERSION=$VERSION" | tee -a $GITHUB_ENV
+          REPO_URL=https://github.com/${{ github.repository }}
+          echo "REPO_URL=$REPO_URL" | tee -a $GITHUB_ENV
 
       - name: Prepare RPM build environment
         run: |
           rpmdev-setuptree
           cp rpm/*.spec ~/rpmbuild/SPECS/
-          spectool --define "version $VERSION" -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
+          spectool --define "version $VERSION" --define "url $REPO_URL -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
 
       - name: Build RPM
         run: |
-          rpmbuild -ba --nodebuginfo ~/rpmbuild/SPECS/*.spec --define "version $VERSION" --target ${{ matrix.rpm_arch }}
+          rpmbuild -ba --nodebuginfo ~/rpmbuild/SPECS/*.spec --define "version $VERSION" --define "url $REPO_URL" --target ${{ matrix.rpm_arch }}
 
       - name: Find built RPM
         id: find_rpm

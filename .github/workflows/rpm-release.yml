@@ -42,10 +42,6 @@ jobs:
             container: almalinux:10
             distroname: alma10
             rpm_arch: x86_64
-          - arch: aarch64
-            container: almalinux:10
-            distroname: alma10
-            rpm_arch: aarch64
 
     container:
       image: ${{ matrix.container }}
@@ -80,13 +76,6 @@ jobs:
           rpmdev-setuptree
           cp rpm/*.spec ~/rpmbuild/SPECS/
           spectool --define "version $VERSION" --define "url $REPO_URL" -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
-
-      - name: Remove branch-protection from CFLAGS and RUSTFLAGS
-        if: matrix.distroname == 'alma10'
-        run: |
-          dnf install -y gcc-toolset-13
-          echo "CC=gcc-13" >> $GITHUB_ENV
-          echo "CXX=g++-13" >> $GITHUB_ENV
 
       - name: Build RPM
         run: |

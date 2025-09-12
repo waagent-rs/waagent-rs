@@ -79,7 +79,7 @@ jobs:
         run: |
           rpmdev-setuptree
           cp rpm/*.spec ~/rpmbuild/SPECS/
-          spectool --define "version $VERSION" --define "url $REPO_URL -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
+          spectool --define "version $VERSION" --define "url $REPO_URL" -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
 
       - name: Build RPM
         run: |

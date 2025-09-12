@@ -43,7 +43,6 @@ jobs:
             distroname: alma10
             rpm_arch: x86_64
           - arch: x86_64
-            container: almalinux:9
             container: opensuse/leap:15.6
             rpm_arch: x86_64
           - arch: aarch64

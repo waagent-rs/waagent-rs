@@ -84,6 +84,8 @@ jobs:
       - name: Remove branch-protection from CFLAGS and RUSTFLAGS
         if: matrix.distroname == 'alma10'
         run: |
+          gcc --version
+          sudo dnf search gcc
           echo $CFLAGS
           echo $RUSTFLAGS
           export CFLAGS="$(echo ${CFLAGS} | sed 's/-mbranch-protection=standard//g')"

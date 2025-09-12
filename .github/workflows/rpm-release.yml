@@ -38,6 +38,14 @@ jobs:
             container: almalinux:9
             distroname: alma9
             rpm_arch: aarch64
+          - arch: x86_64
+            container: almalinux:10
+            distroname: alma10
+            rpm_arch: x86_64
+          - arch: aarch64
+            container: almalinux:10
+            distroname: alma10
+            rpm_arch: aarch64
 
     container:
       image: ${{ matrix.container }}

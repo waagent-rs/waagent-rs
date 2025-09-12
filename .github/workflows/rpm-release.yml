@@ -84,7 +84,7 @@ jobs:
       - name: Remove branch-protection from CFLAGS and RUSTFLAGS
         if: matrix.distroname == 'alma10'
         run: |
-          dnf install -y gcc-13 g++-13
+          dnf install -y gcc-toolset-13
           echo "CC=gcc-13" >> $GITHUB_ENV
           echo "CXX=g++-13" >> $GITHUB_ENV
 

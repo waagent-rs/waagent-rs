@@ -81,6 +81,16 @@ jobs:
           cp rpm/*.spec ~/rpmbuild/SPECS/
           spectool --define "version $VERSION" --define "url $REPO_URL" -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
 
+      - name: Remove branch-protection from CFLAGS and RUSTFLAGS
+        if: matrix.distroname == 'alma10'
+        run: |
+          echo $CFLAGS
+          echo $RUSTFLAGS
+          export CFLAGS="$(echo ${CFLAGS} | sed 's/-mbranch-protection=standard//g')"
+          export RUSTFLAGS="$(echo ${RUSTFLAGS} | sed 's/-mbranch-protection=standard//g')"
+          echo $CFLAGS
+          echo $RUSTFLAGS
+
       - name: Build RPM
         run: |
           rpmbuild -ba --nodebuginfo ~/rpmbuild/SPECS/*.spec --define "version $VERSION" --define "url $REPO_URL" --target ${{ matrix.rpm_arch }}

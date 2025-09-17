@@ -167,7 +167,7 @@ fn create_base_params(goal_state: &GoalState) -> Vec<Param> {
     ]
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct GoalState {
     #[allow(dead_code)]
     #[serde(rename = "Version")]
@@ -181,7 +181,7 @@ struct GoalState {
     container: Container,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct Machine {
     #[allow(dead_code)]
     #[serde(rename = "ExpectedState")]
@@ -197,14 +197,14 @@ struct Machine {
     expect_health_report: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct LBProbePorts {
     #[allow(dead_code)]
     #[serde(rename = "Port")]
     port: u16,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct Container {
     #[serde(rename = "ContainerId")]
     container_id: String,
@@ -212,13 +212,13 @@ struct Container {
     role_instance_list: RoleInstanceList,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct RoleInstanceList {
     #[serde(rename = "RoleInstance")]
     role_instance: RoleInstance,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct RoleInstance {
     #[serde(rename = "InstanceId")]
     instance_id: String,
@@ -230,7 +230,7 @@ struct RoleInstance {
     configuration: Configuration,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct Configuration {
     #[allow(dead_code)]
     #[serde(rename = "HostingEnvironmentConfig")]
@@ -410,10 +410,24 @@ fn create_provision_telemetry(goal_state: &GoalState) -> TelemetryData {
 
 async fn run_heartbeat_loop(client: &Client, goal_state: &GoalState) -> Result<()> {
     let mut heartbeat_count = 1;
-    
     loop {
         sleep(Duration::from_secs(HEARTBEAT_INTERVAL_SECS)).await;
-        
+
+        // Re-fetch the goal state before each heartbeat/telemetry event
+        let latest_goal_state = match fetch_goal_state(client).await {
+            Ok(gs) => gs,
+            Err(e) => {
+                eprintln!("Failed to refresh goal state: {e}");
+                // Use previous goal_state as fallback
+                goal_state.clone()
+            }
+        };
+
+        // Send status report every loop
+        if let Err(e) = send_status_report(client, &latest_goal_state).await {
+            eprintln!("Failed to send status report: {e}");
+        }
+
         // Cycle through different event types
         let (event_name, event_id) = match heartbeat_count % 4 {
             0 => ("AgentStatus", "2"),
@@ -421,9 +435,9 @@ async fn run_heartbeat_loop(client: &Client, goal_state: &GoalState) -> Result<(
             2 => ("WAStart", "3"),
             _ => ("Provision", "4"),
         };
-        
-        let mut params = create_base_params(goal_state);
-        
+
+        let mut params = create_base_params(&latest_goal_state);
+
         match event_name {
             "HeartBeat" => {
                 let sys_info = SystemStats::current();
@@ -438,7 +452,7 @@ async fn run_heartbeat_loop(client: &Client, goal_state: &GoalState) -> Result<(
                     },
                     Param {
                         name: "Role".to_string(),
-                        value: goal_state.container.role_instance_list.role_instance.instance_id.clone(),
+                        value: latest_goal_state.container.role_instance_list.role_instance.instance_id.clone(),
                     },
                     Param {
                         name: "CPU".to_string(),
@@ -490,7 +504,7 @@ async fn run_heartbeat_loop(client: &Client, goal_state: &GoalState) -> Result<(
             },
             _ => {}
         }
-        
+
         let current_telemetry = TelemetryData {
             version: "1.0".to_string(),
             provider: Provider {
@@ -504,7 +518,7 @@ async fn run_heartbeat_loop(client: &Client, goal_state: &GoalState) -> Result<(
                 },
             },
         };
-        
+
         send_telemetry_event(client, &current_telemetry, event_name, heartbeat_count).await?;
         heartbeat_count += 1;
     }

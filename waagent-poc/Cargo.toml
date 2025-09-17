@@ -2,6 +2,8 @@
 name = "waagent-rs-poc"
 version = "0.1.1"
 edition = "2021"
+license = "Apache"
+description = "Azure Agent written in Rust"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
@@ -15,3 +17,13 @@ chrono = { version = "0.4", features = ["serde"] }
 waagent-core = { path = "../waagent-core" }
 
 windows-service = "0.5"
+
+[package.metadata.deb]
+maintainer = "Waagent-rs <alvaro.figueroa@microsoft.com>"
+extended-description = "Azure Agent written in Rust"
+assets = [
+    ["target/release/waagent-rs-poc", "usr/bin/", "755"],
+    ["../init/systemd/waagent-rs.service", "usr/lib/systemd/system/", "644"],
+    ["../waagent-poc/sudoers.d/waagent-rs", "etc/sudoers.d/", "660"]
+]
+maintainer-scripts = "../deb/maintainer-scripts"

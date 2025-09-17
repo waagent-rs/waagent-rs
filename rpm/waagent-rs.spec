@@ -3,12 +3,11 @@
 #
 
 Name:           waagent-rs
-Version:        0.1.0
+Version:        %{version}
 Release:        1%{?dist}
 Summary:        Azure Agent, in Rust
 
 License:        MIT OR Apache-2.0
-URL:            https://github.com/waagent-rs/waagent-rs
 Source:         %{url}/archive/v%{version}/waagent-rs-%{version}.tar.gz
 
 BuildRequires:  gcc
@@ -46,5 +45,9 @@ getent passwd waagent-rs >/dev/null || useradd -r -d /nonexistent -s /usr/sbin/n
 %doc README.md
 
 %changelog
+* Tue Sep 12 2025 Álvaro Figueroa (alvaro.figueroa@microsoft.com) - 0.1.1-1
+- Adding dynamic version and repo url 
+* Tue Sep  8 2025 Álvaro Figueroa (alvaro.figueroa@microsoft.com) - 0.1.1-0
+- Adding multiarch rpm, os detection, windows port
 * Tue Aug 19 2025 Francisco Ortiz (francisco.ortiz@microsoft.com) - 0.1.0
 - Initial package

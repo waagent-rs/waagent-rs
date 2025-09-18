@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+# Create waagent-rs user if it doesn't exist
+if ! getent passwd waagent-rs
+then
+  useradd -r -d /nonexistent -s /usr/sbin/nologin waagent-rs
+fi
+
+#DEBHELPER#

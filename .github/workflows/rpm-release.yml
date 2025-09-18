@@ -13,36 +13,80 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [x86_64, aarch64]
         include:
           - arch: x86_64
             container: mcr.microsoft.com/azurelinux/base/core:3.0
+            distroname: azl
             rpm_arch: x86_64
           - arch: aarch64
             container: mcr.microsoft.com/azurelinux/base/core:3.0
+            distroname: azl
+            rpm_arch: aarch64
+          - arch: aarch64
+            container: almalinux:8
+            distroname: alma8
+            rpm_arch: aarch64
+          - arch: x86_64
+            container: almalinux:8
+            distroname: alma8
+            rpm_arch: x86_64
+          - arch: x86_64
+            container: almalinux:9
+            distroname: alma9
+            rpm_arch: x86_64
+          - arch: aarch64
+            container: almalinux:9
+            distroname: alma9
+            rpm_arch: aarch64
+          - arch: x86_64
+            container: almalinux:10
+            distroname: alma10
+            rpm_arch: x86_64
+          - arch: x86_64
+            container: opensuse/leap:15.6
+            rpm_arch: x86_64
+          - arch: aarch64
+            container: opensuse/leap:15.6
+            distroname: suse15
             rpm_arch: aarch64
 
     container:
       image: ${{ matrix.container }}
 
     steps:
+      - name: Print matrix info
+        run: echo "Building for ${{ matrix.arch }} on ${{ matrix.distroname }}"
+
       - name: Install build dependencies
         run: |
-          GNUPGHOME=/root/.gnupg tdnf -y update
-          GNUPGHOME=/root/.gnupg tdnf -y install rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel
+          if [ -x /usr/bin/tdnf ]; then export TOOL="tdnf -y"; export GNUPGHOME=/root/.gnupg; echo SPECTOOL=spectool | tee -a $GITHUB_ENV
+          elif [ -x /usr/bin/dnf ]; then export TOOL="dnf -y"; echo SPECTOOL=spectool | tee -a $GITHUB_ENV
+          elif [ -x /usr/bin/zypper ]; then export TOOL="zypper --non-interactive"; $TOOL install rpm-build wget gzip; echo SPECTOOL=rpmdev-spectool | tee -a $GITHUB_ENV
+          else echo 'No tool found'; exit 0; fi
+          echo "Using as package tool $TOOL"
+          $TOOL update
+          $TOOL install rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel
 
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Extract tag from Github
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION=$(echo "$TAG" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+).*$/\1/')
+          echo "VERSION=$VERSION" | tee -a $GITHUB_ENV
+          REPO_URL=https://github.com/${{ github.repository }}
+          echo "REPO_URL=$REPO_URL" | tee -a $GITHUB_ENV
 
       - name: Prepare RPM build environment
         run: |
           rpmdev-setuptree
           cp rpm/*.spec ~/rpmbuild/SPECS/
-          spectool -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
+          $SPECTOOL --define "version $VERSION" --define "url $REPO_URL" -C ~/rpmbuild/SOURCES/ -g ~/rpmbuild/SPECS/waagent-rs.spec
 
       - name: Build RPM
         run: |
-          rpmbuild -ba ~/rpmbuild/SPECS/*.spec --target ${{ matrix.rpm_arch }}
+          rpmbuild -ba --nodebuginfo ~/rpmbuild/SPECS/*.spec --define "version $VERSION" --define "url $REPO_URL" --target ${{ matrix.rpm_arch }}
 
       - name: Find built RPM
         id: find_rpm
@@ -53,7 +97,7 @@ jobs:
       - name: Upload RPM artifact
         uses: actions/upload-artifact@v4
         with:
-          name: waagent-rs-${{ matrix.arch }}
+          name: waagent-rs-${{ matrix.arch }}-${{ matrix.distroname }}
           path: ${{ steps.find_rpm.outputs.rpm_path }}
 
   release:

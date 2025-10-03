@@ -26,9 +26,11 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get -y -qq install rustup pkg-config libssl-dev
           rustup toolchain install stable
+          cargo install cargo-audit --locked
       - name: Build
         run: |
           cargo --quiet check
           cargo test
+          cargo audit
           cargo --quiet build --release
           ls -lha target/release

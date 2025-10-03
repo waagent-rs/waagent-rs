@@ -54,9 +54,6 @@ fn get_user_uid(username: &str) -> Result<String> {
 
     if output.status.success() {
         let uid = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        if cfg!(debug_assertions) {
-            println!("Found uid {} for user {}", uid, username);
-        }
         Ok(uid)
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr);

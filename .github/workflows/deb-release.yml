@@ -6,11 +6,13 @@ on:
       - 'v*.*.*'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-deb:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         target:
@@ -81,6 +83,8 @@ jobs:
   release:
     needs: build-deb
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4

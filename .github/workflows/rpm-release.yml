@@ -6,11 +6,13 @@ on:
       - 'v*.*.*'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-rpm:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         include:
@@ -103,6 +105,8 @@ jobs:
   release:
     needs: build-rpm
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -113,7 +117,3 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ./artifacts/**/*.rpm
-
-#Change log
-#    Wed Aug 27 2025 Mitch Tenorio (mitenori@microsoft.com)
-#

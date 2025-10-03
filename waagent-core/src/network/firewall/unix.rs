@@ -16,6 +16,12 @@ impl UnixFirewallManager {
     }
 }
 
+impl Default for UnixFirewallManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FirewallManager for UnixFirewallManager {
     fn add_rule(&self, rule: &FirewallRule) -> Result<(), Box<dyn Error>> {
         // Check if rule already exists before adding
@@ -51,7 +57,7 @@ impl FirewallManager for UnixFirewallManager {
         };
         
         let output = cmd
-            .args(&["-t", "security", "-L", "OUTPUT", "-n", "--line-numbers"])
+            .args(["-t", "security", "-L", "OUTPUT", "-n", "--line-numbers"])
             .output()?;
             
         if !output.status.success() {

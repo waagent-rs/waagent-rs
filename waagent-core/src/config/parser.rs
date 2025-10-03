@@ -70,16 +70,16 @@ fn parse_config_value(
 ) -> Option<ConfigValue> {
     match key {
         "HttpProxy.Port" => {
-            parse_port_value(&value).or_else(|| fallback_to_default(&key, &defaults))
+            parse_port_value(value).or_else(|| fallback_to_default(key, defaults))
         }
         _ if expected_type == Some(&ExpectedType::Bool) => {
-            parse_bool_value(&value).or_else(|| fallback_to_default(&key, &defaults))
+            parse_bool_value(value).or_else(|| fallback_to_default(key, defaults))
         }
         _ if expected_type == Some(&ExpectedType::String) => {
-            parse_string_value(&value).or_else(|| fallback_to_default(&key, &defaults))
+            parse_string_value(value).or_else(|| fallback_to_default(key, defaults))
         }
         _ if expected_type == Some(&ExpectedType::Integer) => {
-            parse_integer_value(&value).or_else(|| fallback_to_default(&key, &defaults))
+            parse_integer_value(value).or_else(|| fallback_to_default(key, defaults))
         }
         _ => None,
     }

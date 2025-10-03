@@ -136,7 +136,7 @@ fn get_os_version() -> String {
         os_version
     } else {
         // Fallback to Unknown
-        format!("Unknown")
+        "Unknown".to_string()
     }
 }
 

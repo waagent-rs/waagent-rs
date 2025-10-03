@@ -48,7 +48,7 @@ fn get_user_agent() -> String {
 // Helper function to get the uid of a specific user
 fn get_user_uid(username: &str) -> Result<String> {
     let output = Command::new("id")
-        .args(&["-u", username])
+        .args(["-u", username])
         .output()
         .map_err(|e| format!("Failed to execute id command: {}", e))?;
 
@@ -74,7 +74,7 @@ async fn add_wireserver_iptables_rule() -> Result<()> {
 
     // First, check if the rule already exists in the security table OUTPUT chain
     let check_existing = Command::new("sudo")
-        .args(&[
+        .args([
             "iptables", 
             "-t", "security",
             "-C", "OUTPUT", 
@@ -105,7 +105,7 @@ async fn add_wireserver_iptables_rule() -> Result<()> {
     }
 
     let output = Command::new("sudo")
-        .args(&[
+        .args([
             "iptables",
             "-t", "security",
             "-I", "OUTPUT", "2",
@@ -124,7 +124,7 @@ async fn add_wireserver_iptables_rule() -> Result<()> {
                     println!("Successfully added iptables rule for wireserver to security table OUTPUT chain at position 2");
                     // Show the current security table OUTPUT rules for debugging
                     let show_rules = Command::new("sudo")
-                        .args(&["iptables", "-t", "security", "-L", "OUTPUT", "-n", "--line-numbers"])
+                        .args(["iptables", "-t", "security", "-L", "OUTPUT", "-n", "--line-numbers"])
                         .output();
                     if let Ok(rules_result) = show_rules {
                         let rules_output = String::from_utf8_lossy(&rules_result.stdout);
@@ -526,7 +526,7 @@ async fn run_heartbeat_loop(client: &Client, goal_state: &GoalState) -> Result<(
 
 async fn fetch_goal_state(client: &Client) -> Result<GoalState> {
     let response_result = client
-        .get(&format!("{}/machine?comp=goalstate", WIRESERVER_ENDPOINT))
+        .get(format!("{}/machine?comp=goalstate", WIRESERVER_ENDPOINT))
         .header("x-ms-version", WIRESERVER_API_VERSION)
         .timeout(Duration::from_secs(10))
         .send()
@@ -543,7 +543,7 @@ async fn fetch_goal_state(client: &Client) -> Result<GoalState> {
                 // Retry the request after adding the iptables rule
                 println!("Retrying wireserver connection...");
                 client
-                    .get(&format!("{}/machine?comp=goalstate", WIRESERVER_ENDPOINT))
+                    .get(format!("{}/machine?comp=goalstate", WIRESERVER_ENDPOINT))
                     .header("x-ms-version", WIRESERVER_API_VERSION)
                     .timeout(Duration::from_secs(10))
                     .send()
@@ -586,7 +586,7 @@ async fn send_health_report(client: &Client, goal_state: &GoalState) -> Result<(
     }
 
     let health_response_result = client
-        .post(&format!("{}/machine?comp=health", WIRESERVER_ENDPOINT))
+        .post(format!("{}/machine?comp=health", WIRESERVER_ENDPOINT))
         .header("x-ms-version", WIRESERVER_API_VERSION)
         .header("x-ms-agent-name", AGENT_NAME)
         .header("User-Agent", &get_user_agent())
@@ -605,7 +605,7 @@ async fn send_health_report(client: &Client, goal_state: &GoalState) -> Result<(
                 
                 // Retry the request
                 client
-                    .post(&format!("{}/machine?comp=health", WIRESERVER_ENDPOINT))
+                    .post(format!("{}/machine?comp=health", WIRESERVER_ENDPOINT))
                     .header("x-ms-version", WIRESERVER_API_VERSION)
                     .header("x-ms-agent-name", AGENT_NAME)
                     .header("User-Agent", &get_user_agent())
@@ -699,7 +699,7 @@ async fn send_status_report(client: &Client, goal_state: &GoalState) -> Result<(
     println!("Sending status report to status service...");
     
     let status_response = client
-        .put(&format!("{}:{}/status", WIRESERVER_ENDPOINT, STATUS_SERVICE_PORT))
+        .put(format!("{}:{}/status", WIRESERVER_ENDPOINT, STATUS_SERVICE_PORT))
         .header("x-ms-version", STATUS_API_VERSION)
         .header("x-ms-agent-name", AGENT_NAME)
         .header("User-Agent", &get_user_agent())
@@ -727,7 +727,7 @@ async fn send_telemetry_event(client: &Client, telemetry_data: &TelemetryData, e
     println!("Sending {} #{} at {}", event_name, count, Utc::now().format("%Y-%m-%d %H:%M:%S UTC"));
     
     let response_result = client
-        .post(&format!("{}/machine?comp=telemetrydata", WIRESERVER_ENDPOINT))
+        .post(format!("{}/machine?comp=telemetrydata", WIRESERVER_ENDPOINT))
         .header("x-ms-version", WIRESERVER_API_VERSION)
         .header("x-ms-agent-name", AGENT_NAME)
         .header("User-Agent", &get_user_agent())
@@ -746,7 +746,7 @@ async fn send_telemetry_event(client: &Client, telemetry_data: &TelemetryData, e
                 
                 // Retry the request
                 client
-                    .post(&format!("{}/machine?comp=telemetrydata", WIRESERVER_ENDPOINT))
+                    .post(format!("{}/machine?comp=telemetrydata", WIRESERVER_ENDPOINT))
                     .header("x-ms-version", WIRESERVER_API_VERSION)
                     .header("x-ms-agent-name", AGENT_NAME)
                     .header("User-Agent", &get_user_agent())

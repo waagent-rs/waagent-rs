@@ -42,6 +42,12 @@ impl ConfigSchema {
     }
 }
 
+impl Default for ConfigSchema {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[rustfmt::skip]
 fn get_config_schema() -> HashMap<String, ExpectedType> {
     let mut schema = HashMap::new();

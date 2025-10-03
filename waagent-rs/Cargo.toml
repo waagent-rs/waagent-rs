@@ -9,8 +9,12 @@ authors = [
     "Alf Delgado Helleseter <adelgadohell@microsoft.com>",
     "Álvaro Figueroa <alvarof@microsoft.com>",
     "Arun Kumar <arukum@microsoft.com>",
-    "Esteban Flores <esflores@microsoft.com>",
+    "Carlos De Avillez <Carlos.DeAvillez@microsoft.com",
+    "Daniel Cherrett <dcherrett@microsoft.com>",
+    "Enrique Sanchez Vela <enrique.sanchezvela@microsoft.com>",
     "Francisco Ortiz <frortizl@microsoft.com>",
+    "Greg Diaz <gregdiaz@microsoft.com>",
+    "James Immer <jamesimmer@microsoft.com>",
     "Jonathan Brenes <jbrenes@microsoft.com>",
     "Manish Kumawat <mkumawat@microsoft.com>",
     "Mitchelle Tenorio Quesada <mitenori@microsoft.com>",
@@ -40,6 +44,3 @@ tracing-appender = { workspace = true }
 [dev-dependencies]
 
 [features]
-
-[target.x86_64-unknown-linux-musl]
-rustflags = ["-C", "target-feature=+crt-static"]

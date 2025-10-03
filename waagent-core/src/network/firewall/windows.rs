@@ -12,6 +12,12 @@ impl WindowsFirewallManager {
     }
 }
 
+impl Default for WindowsFirewallManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FirewallManager for WindowsFirewallManager {
     fn add_rule(&self, rule: &FirewallRule) -> Result<(), Box<dyn Error>> {
         let args = self.build_netsh_args(rule, "add")?;
@@ -48,7 +54,7 @@ impl FirewallManager for WindowsFirewallManager {
     
     fn list_rules(&self) -> Result<Vec<String>, Box<dyn Error>> {
         let output = Command::new("netsh")
-            .args(&["advfirewall", "firewall", "show", "rule", "name=all"])
+            .args(["advfirewall", "firewall", "show", "rule", "name=all"])
             .output()?;
             
         if !output.status.success() {

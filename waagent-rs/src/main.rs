@@ -10,6 +10,7 @@ use waagent_core::network::firewall::{
 };
 
 use waagent_core::config::Config;
+use waagent_core::deprovision::get_deprovision_handler;
 
 #[derive(ValueEnum, Clone, Debug, PartialEq)]
 enum LoggingLevel {
@@ -50,6 +51,21 @@ struct Args {
     /// Show configuration
     #[arg(long, default_value_t = false)]
     show_configuration: bool,
+
+    /// Deprovision the VM (clean up state for image capture). Equivalent
+    /// to `waagent -deprovision` in WALinuxAgent.
+    #[arg(long, default_value_t = false)]
+    deprovision: bool,
+
+    /// When combined with `--deprovision`, also remove the provisioned
+    /// user account and home directory. Equivalent to the `+user` modifier
+    /// in `waagent -deprovision+user`. Has no effect on its own.
+    #[arg(long, default_value_t = false, requires = "deprovision")]
+    deprovision_user: bool,
+
+    /// Skip the interactive y/n confirmation when deprovisioning.
+    #[arg(long, default_value_t = false, requires = "deprovision")]
+    force: bool,
 }
 
 #[tokio::main]
@@ -71,6 +87,22 @@ async fn main() -> Result<()> {
         config.show();
     }
 
+    if args.deprovision {
+        run_deprovision(args.force, args.deprovision_user)?;
+    }
+
+    Ok(())
+}
+
+#[tracing::instrument]
+fn run_deprovision(force: bool, deluser: bool) -> Result<()> {
+    info!("Starting deprovision (force={}, deluser={})", force, deluser);
+    let config = Config::default();
+    let handler = get_deprovision_handler();
+    handler
+        .run(&config, force, deluser)
+        .map_err(|e| anyhow::anyhow!("deprovision failed: {}", e))?;
+    info!("Deprovision finished");
     Ok(())
 }
 

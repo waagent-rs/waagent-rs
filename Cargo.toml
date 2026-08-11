@@ -25,4 +25,10 @@ tokio = { version = "1", features = ["signal", "process", "macros", "rt-multi-th
 
 sysinfo = "0.37"
 
+# Glob expansion (used by deprovision handler)
+glob = "0.3"
+
+# XML (used to parse ovf-env.xml)
+quick-xml = "0.38"
+
 winapi = { version = "0.3", features = ["sysinfoapi"] }

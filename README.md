@@ -37,6 +37,37 @@ sudo systemctl start waagent-rs
 
 Wait a few seconds, and go and check the Agent Status of the VM in the portal.
 
+## Deprovisioning
+
+`waagent-rs` ports the deprovision behavior of the Python WALinuxAgent
+(`azurelinuxagent.pa.deprovision`). It cleans up VM-specific state
+(cached goal state, host keys, DHCP leases, hostname, agent log files,
+persisted firewall rules, cgroup drop-ins, …) so the disk can be
+captured as a generalized image.
+
+The CLI uses two separate flags instead of WALA's `+user` modifier:
+
+| Goal | WALinuxAgent | waagent-rs |
+| --- | --- | --- |
+| Deprovision (keep the user account) | `sudo waagent -deprovision` | `sudo waagent --deprovision` |
+| Deprovision and remove the provisioned user + home dir | `sudo waagent -deprovision+user` | `sudo waagent --deprovision --deprovision-user` |
+| Skip the interactive `y/n` prompt | `sudo waagent -deprovision -force` | `sudo waagent --deprovision --force` |
+
+Notes:
+
+- `--deprovision-user` and `--force` only make sense alongside
+  `--deprovision` and the CLI rejects them otherwise.
+- When `--deprovision-user` is set, the username is read from the cached
+  `/var/lib/waagent/ovf-env.xml`. If that file is missing, the
+  provisioning DVD (`/dev/sr0` or similar) is mounted read-only at
+  `/mnt/cdrom/secure` to read it; the mount is released afterwards.
+- Distro-specific behavior matches WALA: Ubuntu 18.04+ leaves
+  `/etc/resolv.conf` alone, older Ubuntu rewrites the resolvconf
+  fragments, and Arch / CoreOS / Flatcar additionally remove
+  `/etc/machine-id`.
+- The command must be run as root (or via `sudo`) because it stops
+  systemd units, runs `userdel`, locks the root password, and removes
+  files under `/etc`, `/var/lib`, and `/lib/systemd/system`.
 
 ## For Developers
 

@@ -22,6 +22,8 @@ authors = [
 [dependencies]
 sysinfo = { workspace = true }
 tracing = { workspace = true }
+glob = { workspace = true }
+quick-xml = { workspace = true }
 
 [target.'cfg(windows)'.dependencies]
 winapi = { workspace = true }

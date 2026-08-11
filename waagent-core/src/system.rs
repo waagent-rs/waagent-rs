@@ -214,7 +214,7 @@ mod tests {
         let memory_usage = get_memory_usage_percent_with(&system);
         
         // Should return a valid float
-        assert!(memory_usage >= 0.0 && memory_usage <= 100.0, "Memory usage should be between 0 and 100");
+        assert!((0.0..=100.0).contains(&memory_usage), "Memory usage should be between 0 and 100");
         
         // Test that it's a reasonable value (not NaN or infinite)
         assert!(memory_usage.is_finite(), "Memory usage should be a finite number");

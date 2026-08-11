@@ -24,6 +24,7 @@ extended-description = "Azure Agent written in Rust"
 assets = [
     ["target/release/waagent-rs-poc", "usr/bin/", "755"],
     ["../init/systemd/waagent-rs.service", "usr/lib/systemd/system/", "644"],
-    ["../waagent-poc/sudoers.d/waagent-rs", "etc/sudoers.d/", "660"]
+    ["../waagent-poc/sudoers.d/waagent-rs", "etc/sudoers.d/", "660"],
+    ["../deb/maintainer-scripts/.placeholder", "var/lib/waagent-rs/", "755"]
 ]
 maintainer-scripts = "../deb/maintainer-scripts"

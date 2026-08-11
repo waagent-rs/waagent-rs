@@ -93,8 +93,8 @@ fn test_config_file_example() {
     assert_eq!(config.get_value("OS.EnableFirewall"), Some(&ConfigValue::Bool(false)));
     assert_eq!(config.get_value("Debug.EnableExtensionPolicy"), Some(&ConfigValue::Bool(false)));
 
-    // check defaults merged
-    assert_eq!(config.get_value("Lib.Dir"), Some(&ConfigValue::String("/var/lib/waagent".to_string())));
+    // check defaults merged - should use waagent-rs, not the old waagent path
+    assert_eq!(config.get_value("Lib.Dir"), Some(&ConfigValue::String("/var/lib/waagent-rs".to_string())));
     assert_eq!(config.get_value("DetectScvmmEnv"), Some(&ConfigValue::Bool(false)));
     assert_eq!(config.get_value("OS.HomeDir"), Some(&ConfigValue::String("/home".to_string())));
 }

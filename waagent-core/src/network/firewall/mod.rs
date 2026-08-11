@@ -9,6 +9,10 @@ pub mod unix;
 pub use windows::WindowsFirewallManager;
 pub use unix::UnixFirewallManager;
 
+// Platform-specific helper functions
+#[cfg(unix)]
+pub use unix::add_wireserver_iptables_rule;
+
 #[derive(Debug, Clone)]
 pub struct FirewallRule {
     pub name: String, // Unique identifier for the rule

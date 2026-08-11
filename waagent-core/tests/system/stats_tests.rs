@@ -9,11 +9,6 @@ fn test_system_info_integration() {
     assert!(!info.os_name.is_empty());
     assert!(!info.os_version.is_empty());
     
-    // Test that the data is realistic
-    assert!(info.hostname.len() > 0);
-    assert!(info.os_name.len() > 0);
-    assert!(info.os_version.len() > 0);
-    
     println!("System Info: {:?}", info);
 }
 

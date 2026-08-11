@@ -69,7 +69,7 @@ pub fn get_config_defaults() -> HashMap<String,ConfigValue> {
             "Debug.EnableExtensionPolicy" => false
         },
         STRING_OPTIONS: {
-            "Lib.Dir" => "/var/lib/waagent",
+            "Lib.Dir" => "/var/lib/waagent-rs",
             "DVD.MountPoint" => "/mnt/cdrom/secure",
             "Pid.File" => "/var/run/waagent.pid",
             "Extension.LogDir" => "/var/log/azure",

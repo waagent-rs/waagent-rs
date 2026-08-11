@@ -262,7 +262,7 @@ mod tests {
         assert_eq!(parsed_input.len(), 1);
         assert_eq!(
             parsed_input.get("Lib.Dir"),
-            Some(&ConfigValue::String("/var/lib/waagent".to_string()))
+            Some(&ConfigValue::String("/var/lib/waagent-rs".to_string()))
         )
     }
 

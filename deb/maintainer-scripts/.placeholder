@@ -1,0 +1,1 @@
+# This file ensures the /var/lib/waagent-rs directory is created during package installation

@@ -7,4 +7,11 @@ then
   useradd -r -d /nonexistent -s /usr/sbin/nologin waagent-rs
 fi
 
+# Create and set ownership of /var/lib/waagent-rs
+if [ ! -d /var/lib/waagent-rs ]; then
+  mkdir -p /var/lib/waagent-rs
+fi
+chown waagent-rs:waagent-rs /var/lib/waagent-rs
+chmod 755 /var/lib/waagent-rs
+
 #DEBHELPER#

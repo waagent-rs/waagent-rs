@@ -141,3 +141,87 @@ impl UnixFirewallManager {
         Ok(())
     }
 }
+
+/// Add iptables rule to allow wireserver access for the waagent-rs user
+/// This is a convenience function that wraps the FirewallManager interface
+pub async fn add_wireserver_iptables_rule() -> Result<(), Box<dyn Error>> {
+    use crate::utils::system::get_user_uid;
+    
+    if cfg!(debug_assertions) {
+        debug!("Adding iptables rule for wireserver access...");
+    }
+
+    // Get the uid of the waagent-rs user dynamically
+    let waagent_uid = get_user_uid("waagent-rs")?;
+
+    // First, check if the rule already exists in the security table OUTPUT chain
+    let check_existing = Command::new("sudo")
+        .args([
+            "iptables", 
+            "-t", "security",
+            "-C", "OUTPUT", 
+            "-d", "168.63.129.16/32",
+            "-p", "tcp",
+            "-m", "owner",
+            "--uid-owner", &waagent_uid,
+            "-j", "ACCEPT"
+        ])
+        .output();
+        
+    match check_existing {
+        Ok(result) => {
+            if result.status.success() {
+                if cfg!(debug_assertions) {
+                    debug!("Iptables rule for wireserver already exists in security table OUTPUT chain, skipping");
+                }
+                return Ok(());
+            }
+        }
+        Err(_) => {
+            // Rule doesn't exist or check failed, continue to add it
+        }
+    }
+
+    if cfg!(debug_assertions) {
+        debug!("Inserting iptables rule at position 2 in security table OUTPUT chain");
+    }
+
+    let output = Command::new("sudo")
+        .args([
+            "iptables",
+            "-t", "security",
+            "-I", "OUTPUT", "2",
+            "-d", "168.63.129.16/32",
+            "-p", "tcp",
+            "-m", "owner",
+            "--uid-owner", &waagent_uid,
+            "-j", "ACCEPT"
+        ])
+        .output();
+        
+    match output {
+        Ok(result) => {
+            if result.status.success() {
+                if cfg!(debug_assertions) {
+                    debug!("Successfully added iptables rule for wireserver to security table OUTPUT chain at position 2");
+                    // Show the current security table OUTPUT rules for debugging
+                    let show_rules = Command::new("sudo")
+                        .args(["iptables", "-t", "security", "-L", "OUTPUT", "-n", "--line-numbers"])
+                        .output();
+                    if let Ok(rules_result) = show_rules {
+                        let rules_output = String::from_utf8_lossy(&rules_result.stdout);
+                        debug!("Current security table OUTPUT chain rules:\n{}", rules_output);
+                    }
+                }
+            } else {
+                let stderr = String::from_utf8_lossy(&result.stderr);
+                warn!("Failed to add iptables rule: {}", stderr);
+            }
+        }
+        Err(e) => {
+            warn!("Error executing iptables command: {}", e);
+        }
+    }
+    
+    Ok(())
+}

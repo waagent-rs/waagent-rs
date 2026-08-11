@@ -33,6 +33,7 @@ cargo build --release
 install -Dm0755 target/release/waagent-rs-poc %{buildroot}/usr/bin/waagent-rs-poc
 install -Dm0440 waagent-poc/sudoers.d/waagent-rs %{buildroot}/etc/sudoers.d/waagent-rs
 install -Dm0755 init/systemd/waagent-rs.service %{buildroot}/usr/lib/systemd/system/waagent-rs.service
+install -dm0755 %{buildroot}/var/lib/waagent-rs
 
 %pre
 getent passwd waagent-rs >/dev/null || useradd -r -d /nonexistent -s /usr/sbin/nologin waagent-rs
@@ -41,6 +42,7 @@ getent passwd waagent-rs >/dev/null || useradd -r -d /nonexistent -s /usr/sbin/n
 /usr/bin/waagent-rs-poc
 /etc/sudoers.d/waagent-rs
 /usr/lib/systemd/system/waagent-rs.service
+%attr(0755,waagent-rs,waagent-rs) %dir /var/lib/waagent-rs
 %license LICENSE
 %doc README.md
 

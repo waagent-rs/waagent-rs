@@ -70,7 +70,7 @@ jobs:
           $TOOL install rpmdevtools gcc ca-certificates pkg-config openssl-devel kernel-headers binutils glibc-devel
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Extract tag from Github
         run: |
